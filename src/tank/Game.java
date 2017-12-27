@@ -1,0 +1,4 @@
+package tank;
+
+class Game {
+}
