@@ -1,6 +1,7 @@
 package tank;
 
 import javafx.scene.Group;
+import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
@@ -11,16 +12,19 @@ import javafx.scene.transform.Translate;
 import java.util.HashSet;
 
 class Tank {
-    Group group;
-    Rectangle head;
-    Rectangle body;
+    private Group group;
+    private Rectangle head;
+    private Rectangle body;
 
-    Rotate rotate;
-    Translate translate;
+    private final static int VELOCITY = 4;
+    private final static int TURNING_ANGLE = 6;
 
-    HashSet<KeyCode> pressedCodes;
+    private Rotate rotate;
+    private Translate translate;
 
-    protected Tank() {
+    private HashSet<KeyCode> pressedCodes;
+
+    Tank(Group root, Scene scene) {
         pressedCodes = new HashSet<>();
         group = new Group();
 
@@ -38,36 +42,40 @@ class Tank {
         group.getChildren().addAll(body, head);
         // rotate needs to go last so that the pivot point is not affected by translate.
         group.getTransforms().addAll(translate, rotate);
+
+        scene.addEventHandler(KeyEvent.KEY_PRESSED, this::handlePressed);
+        scene.addEventHandler(KeyEvent.KEY_RELEASED, this::handleReleased);
+        root.getChildren().add(group);
     }
 
-    protected void handle(KeyEvent e) {
-        if (e.getEventType() == KeyEvent.KEY_PRESSED) {
-            pressedCodes.add(e.getCode());
-        } else if (e.getEventType() == KeyEvent.KEY_RELEASED) {
-            pressedCodes.remove(e.getCode());
-        }
-    }
-
-    protected void update() {
+    void update() {
         if (pressedCodes.contains(KeyCode.RIGHT)) {
-            rotate.setAngle(rotate.getAngle() + 5);
+            rotate.setAngle(rotate.getAngle() + TURNING_ANGLE);
         }
         if (pressedCodes.contains(KeyCode.LEFT)) {
-            rotate.setAngle(rotate.getAngle() - 5);
+            rotate.setAngle(rotate.getAngle() - TURNING_ANGLE);
         }
         if (pressedCodes.contains(KeyCode.UP)) {
-            move(5);
+            move(VELOCITY);
         }
         if (pressedCodes.contains(KeyCode.DOWN)) {
-            move(-5);
+            move(-VELOCITY);
         }
     }
 
-    protected void move(int d) {
+    private void move(int d) {
         double theta = Math.toRadians(rotate.getAngle());
         double dx = Math.cos(theta) * d;
         double dy = Math.sin(theta) * d;
         translate.setX(translate.getX() + dx);
         translate.setY(translate.getY() + dy);
+    }
+
+    private void handlePressed(KeyEvent e) {
+        pressedCodes.add(e.getCode());
+    }
+
+    private void handleReleased(KeyEvent e) {
+        pressedCodes.remove(e.getCode());
     }
 }

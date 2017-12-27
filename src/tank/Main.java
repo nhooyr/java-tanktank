@@ -11,8 +11,8 @@ import javafx.stage.Stage;
 // EXPLAIN WHY GAME LOOP DESIGN. time step.
 public class Main extends Application {
 
-    final int WIDTH = 600;
-    final int HEIGHT = 400;
+    private final int WIDTH = 600;
+    private final int HEIGHT = 400;
 
     @Override
     public void start(Stage stage) throws Exception {
@@ -21,10 +21,7 @@ public class Main extends Application {
         Group root = new Group();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
-        Tank tank = new Tank();
-        scene.setOnKeyPressed(tank::handle);
-        scene.setOnKeyReleased(tank::handle);
-        root.getChildren().add(tank.group);
+        Game game = new Game(root, scene);
 
         stage.setScene(scene);
         stage.show();
@@ -32,7 +29,7 @@ public class Main extends Application {
         final AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                tank.update();
+                game.update();
             }
         };
         timer.start();
