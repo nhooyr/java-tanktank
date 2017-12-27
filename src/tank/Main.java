@@ -23,6 +23,7 @@ public class Main extends Application {
 
         Game game = new Game(root, scene);
 
+        // TODO move more state into game object so it can be played with more often. also look into xml stuff that was here in the beginning.
         stage.setScene(scene);
         stage.show();
 
