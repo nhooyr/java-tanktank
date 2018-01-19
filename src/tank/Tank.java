@@ -6,10 +6,10 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 
 class Tank {
-    protected final static int VELOCITY = 4; // exported for use in BulletManager.
+    protected final static int VELOCITY = 3; // exported for use in BulletManager.
     private final static int TURNING_ANGLE = 5;
     private final static int WIDTH = 40;
-    private final static int HEIGHT = 30;
+    protected  final static int HEIGHT = 30; // exported for use in Maze.
     private final static int HEAD_WIDTH = WIDTH / 2;
     protected final static int HEAD_HEIGHT = HEIGHT / 4; // exported for use in Bullet.
     private Group group;

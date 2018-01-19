@@ -18,8 +18,11 @@ class Game {
     private BulletManager bulletManager;
 
     // WIDTH and HEIGHT of the scene.
-    private final static int WIDTH = Cell.LENGTH * Maze.COLUMNS;
-    private final static int HEIGHT = Cell.LENGTH * Maze.ROWS;
+    // We add the thickness because at far right and bottom edges of the screen we are going to place
+    // the final sides of the grid and they need additional space because of how the grid drawing algorithm works.
+    // See the Maze class.
+    private final static int WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
+    private final static int HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
 
     // keys pressed since the last frame.
     private HashSet<KeyCode> pressedKeys;
@@ -35,7 +38,7 @@ class Game {
         Group root = new Group();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         tank = new Tank(root);
-        maze = new Maze(root, scene);
+        maze = new Maze(root);
         bulletManager = new BulletManager(root);
 
         scene.addEventHandler(KeyEvent.KEY_PRESSED, this::handlePressed);
