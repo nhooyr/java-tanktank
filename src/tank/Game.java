@@ -37,9 +37,9 @@ class Game {
 
         Group root = new Group();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
-        tank = new Tank(root);
         maze = new Maze(root);
-        bulletManager = new BulletManager(root);
+        tank = new Tank(root);
+        bulletManager = new BulletManager(root, maze);
 
         scene.addEventHandler(KeyEvent.KEY_PRESSED, this::handlePressed);
         scene.addEventHandler(KeyEvent.KEY_RELEASED, this::handleReleased);
@@ -53,7 +53,7 @@ class Game {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                g.handle(now);
+                g.handle();
             }
         };
         timer.start();
@@ -66,7 +66,7 @@ class Game {
     // There are many other articles recommending this design.
     // Though, I am not positive it works the way I think it does and the docs are not very clear. So whatever,
     // no big deal.
-    private void handle(long now) {
+    private void handle() {
         if (pressedKeys.contains(KeyCode.RIGHT)) {
             tank.right();
         }
