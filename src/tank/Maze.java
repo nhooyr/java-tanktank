@@ -12,7 +12,7 @@ class Maze {
     private Cell[][] grid;
 
     // TODO we export this because we want to place the tank not in the grid, instead we should randomly place the tank in a cell.
-    protected final static int THICKNESS = (int) (Bullet.VELOCITY) * 4;
+    protected final static int THICKNESS = (int) (Bullet.VELOCITY) * 2;
     protected final static int ROWS = 8;
     protected final static int COLUMNS = 10;
 
@@ -49,7 +49,7 @@ class Maze {
         ArrayList<Cell> yummyCells = new ArrayList<>(ROWS * COLUMNS);
         for (Cell[] cells : grid) {
             for (Cell cell : cells) {
-                if (cell.yummySides.size() > 2) {
+                if (cell.yummySides.size() > 1) {
                     yummyCells.add(cell);
                 }
             }

@@ -47,6 +47,10 @@ class Bullet {
         move(dx, dy);
     }
 
+    // The way this works is that first we check if the rectangle is intersecting with the bullet. If so,
+    // then we need to figure out which side the bullet is on. So we move the bullet back until there is no
+    // collision. Then we check which side is closest to the bullet and based on that return the appropriate
+    // collision status.
     protected Maze.CollisionStatus checkCollision(Rectangle rect) {
         if (!rect.getBoundsInParent().intersects(circle.getBoundsInParent())) {
             // The bullet does not intersect the rect.

@@ -6,12 +6,14 @@ import javafx.scene.shape.Rectangle;
 import javafx.scene.transform.Rotate;
 
 class Tank {
-    protected final static int VELOCITY = 3; // exported for use in BulletManager.
+    protected final static int VELOCITY = 3; // exported for use in Bullet.
     private final static int TURNING_ANGLE = 5;
     private final static int WIDTH = 40;
     protected  final static int HEIGHT = 30; // exported for use in Maze.
     private final static int HEAD_WIDTH = WIDTH / 2;
     protected final static int HEAD_HEIGHT = HEIGHT / 4; // exported for use in Bullet.
+    private final static Color COLOR = Color.BLUE;
+
     private Group group;
     private Rectangle head;
     private Rectangle body;
@@ -21,8 +23,8 @@ class Tank {
     protected Tank(Group root) {
         group = new Group();
 
-        body = new Rectangle(WIDTH, HEIGHT, Color.BLUE);
-        head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT, Color.BLUE);
+        body = new Rectangle(WIDTH, HEIGHT, COLOR);
+        head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT, COLOR);
         head.setX(body.getX() + body.getWidth() - head.getWidth() / 2);
         head.setY(body.getY() + body.getHeight() / 2 - head.getHeight() / 2);
 

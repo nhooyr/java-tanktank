@@ -39,7 +39,7 @@ class Game {
         Scene scene = new Scene(root, WIDTH, HEIGHT);
         maze = new Maze(root);
         tank = new Tank(root);
-        bulletManager = new BulletManager(root, maze);
+        bulletManager = new BulletManager(root, maze, tank);
 
         scene.addEventHandler(KeyEvent.KEY_PRESSED, this::handlePressed);
         scene.addEventHandler(KeyEvent.KEY_RELEASED, this::handleReleased);
