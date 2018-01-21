@@ -44,7 +44,13 @@ class Rectangle {
     }
 
     protected Double[] getDoubles() {
-        return Physics.pointsToDoubles(points);
+        Double[] doubles = new Double[points.length * 2];
+        for (int i = 0; i < points.length; i++) {
+            int j = i * 2;
+            doubles[j] = points[i].getX();
+            doubles[j + 1] = points[i].getY();
+        }
+        return doubles;
     }
 
     // Needed for figuring out the position in which to launch the bullet.

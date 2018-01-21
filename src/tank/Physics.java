@@ -1,6 +1,7 @@
 package tank;
 
 import javafx.geometry.Point2D;
+import javafx.scene.shape.Shape;
 
 class Physics {
     protected static Point2D decomposeVector(double v, double theta) {
@@ -21,13 +22,17 @@ class Physics {
         return point.add(pivot);
     }
 
-    protected static Double[] pointsToDoubles(Point2D[] points) {
-        Double[] doubles = new Double[points.length*2];
-        for (int i = 0; i < points.length; i++) {
-            int j = i * 2;
-            doubles[j] = points[i].getX();
-            doubles[j + 1] = points[i].getY();
-        }
-        return doubles;
+    protected static boolean checkCollision(Shape shape1, Shape shape2) {
+        // This is incredibly inefficient but doing it more efficiently involves a lot of math and for this game
+        // it is not worth the effort. Just do not run this on a complete toaster.
+        // We do not use javafx's bounds as described at https://docs.oracle.com/javase/8/javafx/api/javafx/geometry/Bounds.html
+        // because when a shape is rotated, the bounding box does not rotate, instead it is formed the min/max x/y values which
+        // means collision detection becomes highly inaccurate.
+        //
+        // If in the future, this becomes a bottleneck, use the method described in
+        // https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection.
+        Shape intersection = Shape.intersect(shape1, shape2);
+        return intersection.getBoundsInLocal().getWidth() > 0;
+//        return shape1.getBoundsInParent().intersects(shape2.getBoundsInParent());
     }
 }

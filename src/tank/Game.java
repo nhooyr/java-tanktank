@@ -8,6 +8,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.util.HashSet;
+import java.util.concurrent.TimeUnit;
 
 // All methods that will be called from JavaFX onto user code run on a
 // single thread so no synchronization across anything is necessary.
@@ -25,7 +26,7 @@ class Game {
     private final static double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
 
     // keys pressed since the last frame.
-    private HashSet<KeyCode> pressedKeys;
+    private HashSet<KeyCode> pressedKeys = new HashSet<>();
 
     // bulletLock is used to ensure that a new bullet cannot be fired
     // until the bullet firing key is released.
@@ -33,7 +34,6 @@ class Game {
 
     protected Game(Stage stage) {
         stage.setResizable(false);
-        pressedKeys = new HashSet<>();
 
         Group root = new Group();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
@@ -53,11 +53,13 @@ class Game {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                g.handle();
+                g.handle(now);
             }
         };
         timer.start();
     }
+
+    FPSMeter fpsMeter = new FPSMeter();
 
     // The game loop runs on an AnimationTimer which calls handle() about every 1/60 of a second.
     // Rendering and updating are handled separately in JavaFX so this is the standard design of a game loop.
@@ -66,7 +68,9 @@ class Game {
     // There are many other articles recommending this design.
     // Though, I am not positive it works the way I think it does and the docs are not very clear. So whatever,
     // no big deal.
-    private void handle() {
+    private void handle(long nanos) {
+        fpsMeter.handle(nanos);
+
         if (pressedKeys.contains(KeyCode.RIGHT)) {
             tank.right();
         }
@@ -80,6 +84,7 @@ class Game {
             tank.back();
         }
         tank.syncPolygons();
+
         if (pressedKeys.contains(KeyCode.SPACE) && !bulletLock) {
             bulletLock = true;
             bulletManager.addBullet(

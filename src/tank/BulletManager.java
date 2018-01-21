@@ -27,15 +27,11 @@ class BulletManager {
     protected void update() {
         bullets.forEach(bullet -> {
             bullet.update();
-            CollisionStatus collisionStatus = maze.checkBulletCollision(bullet);
-            switch (collisionStatus) {
-                case HORIZONTAL:
-                    bullet.horizontalBounce();
-                case VERTICAL:
-                    bullet.verticalBounce();
+            try {
+                maze.handleBulletCollision(bullet);
+            } catch (ArrayIndexOutOfBoundsException e) {
+                System.out.println(bullet.getCenter());
             }
-            // If there was a collision, the bullet will be moved back such that there is no collision anymore.
-            // We do not need to move it back ourselves.
         });
     }
 }

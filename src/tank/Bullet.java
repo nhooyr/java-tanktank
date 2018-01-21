@@ -7,7 +7,9 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
-class Bullet {
+import java.util.ArrayList;
+
+class Bullet implements Maze.CollisionHandler {
     private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
     private static final Paint COLOR = Color.RED;
     protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
@@ -28,12 +30,12 @@ class Bullet {
         decomposedVelocity = Physics.decomposeVector(VELOCITY, theta);
     }
 
-    protected void horizontalBounce() {
-        double theta = -3 * Math.PI / 2 + (Math.PI / 2 + this.theta);
+    private void horizontalBounce() {
+        double theta = -this.theta;
         setTheta(theta);
     }
 
-    protected void verticalBounce() {
+    private void verticalBounce() {
         double theta = -Math.PI - this.theta;
         setTheta(theta);
     }
@@ -51,36 +53,56 @@ class Bullet {
     // then we need to figure out which side the bullet is on. So we move the bullet back until there is no
     // collision. Then we check which side is closest to the bullet and based on that return the appropriate
     // collision status.
-    protected CollisionStatus checkCollision(Rectangle rect) {
-        if (!rect.getBoundsInParent().intersects(circle.getBoundsInParent())) {
-            // The bullet does not intersect the rect.
-            return CollisionStatus.OK;
+    public void handleCollision(ArrayList<Rectangle> sides) {
+        for (int i = 0; i < sides.size(); i++) {
+            if (!Physics.checkCollision(circle, sides.get(i))) {
+                // The bullet does not intersect the side.
+                sides.remove(i);
+                i--;
+            }
         }
 
-        // Maybe increase the velocity if this is too computationally expensive. Does not seem like that so far though.
-        // So whatever.
-        Point2D decomposedVelocity = Physics.decomposeVector(-0.1, theta);
+        if (sides.size() == 0) {
+            // The bullet does not intersect any of the sides.
+            return;
+        }
 
+        // side will hold the final side the object ended up colliding with, aka the first collision.
+        Rectangle side = null;
+        // Backtrack.
+        Point2D decomposedVelocity = Physics.decomposeVector(-1, theta);
         do {
             moveBy(decomposedVelocity);
-        } while (rect.getBoundsInParent().intersects(circle.getBoundsInParent()));
 
+            for (int i = 0; i < sides.size(); i++) {
+                if (!Physics.checkCollision(circle, sides.get(i))) {
+                    side = sides.remove(i);
+                    i--;
+                }
+            }
+        } while (sides.size() > 0);
 
         double x = circle.getCenterX();
         double y = circle.getCenterY();
         double radius = circle.getRadius();
 
-        double h1 = Math.abs(rect.getX() - (x + radius));
-        double h2 = Math.abs((x - radius) - (rect.getX() + rect.getWidth()));
+        double h1 = Math.abs(side.getX() - (x + radius));
+        double h2 = Math.abs((x - radius) - (side.getX() + side.getWidth()));
         double h = h1 < h2 ? h1 : h2;
 
-        double v1 = Math.abs((rect.getY() - (y + radius)));
-        double v2 = Math.abs((y - radius) - (rect.getY() + rect.getHeight()));
+        double v1 = Math.abs((side.getY() - (y + radius)));
+        double v2 = Math.abs((y - radius) - (side.getY() + side.getHeight()));
         double v = v1 < v2 ? v1 : v2;
 
         if (v < h) {
-            return CollisionStatus.HORIZONTAL;
+            horizontalBounce();
+            return;
         }
-        return CollisionStatus.VERTICAL;
+        verticalBounce();
+    }
+
+    // Used for detecting which cells to check collisions with.
+    public Point2D getCenter() {
+        return new Point2D(circle.getCenterX(), circle.getCenterY());
     }
 }
