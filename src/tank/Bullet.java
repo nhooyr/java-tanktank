@@ -60,7 +60,6 @@ class Bullet implements Maze.CollisionHandler {
     // then we need to figure out which side the bullet is on. So we move the bullet back until there is no
     // collision. Then we check which side is closest to the bullet and based on that return the appropriate
     // collision status.
-    // TODO maybe add corner mechanics. e.g. bounce straight back at corner or bounce 90 degrees off.
     public void handleCollision(ArrayList<Rectangle> sides) {
         for (int i = 0; i < sides.size(); i++) {
             if (!Physics.checkCollision(circle, sides.get(i))) {
@@ -78,7 +77,7 @@ class Bullet implements Maze.CollisionHandler {
         // side will hold the final side the object ended up colliding with, aka the first collision.
         Rectangle side = null;
         // Backtrack.
-        Point2D smallVelocity = Point2D.ZERO.subtract(velocity.multiply(1.0 / 32.0));
+        Point2D smallVelocity = velocity.multiply(-1.0 / 32.0);
         do {
             moveBy(smallVelocity);
 
@@ -101,7 +100,8 @@ class Bullet implements Maze.CollisionHandler {
             return;
         }
 
-        Point2D center = getCenter();
+        // This means the bullet collided with a corner.
+
         Point2D corner;
 
         // TODO this could be cleaned up if we used the Rectangle class only.
@@ -120,6 +120,7 @@ class Bullet implements Maze.CollisionHandler {
         }
 
         // Magic. Researched to figure this out. Mostly obtained from https://gamedev.stackexchange.com/questions/10911/a-ball-hits-the-corner-where-will-it-deflect.
+        Point2D center = getCenter();
         Point2D diff = center.subtract(corner);
         double c = -2 * (velocity.getX() * diff.getX() + velocity.getY() * diff.getY()) / (diff.getX() * diff.getX() + diff.getY() * diff.getY());
         Point2D vectorDelta = new Point2D(c * diff.getX(), c * diff.getY());
