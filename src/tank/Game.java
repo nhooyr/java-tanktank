@@ -12,8 +12,8 @@ import javafx.stage.Stage;
 // https://docs.oracle.com/javase/8/javafx/get-started-tutorial/jfx-architecture.htm
 class Game {
     private Maze maze = new Maze();
-    private Tank tank1 = new Tank(0, Color.BLUE, maze, Tank.keyCodeOpHashMap1);
-    private Tank tank2 = new Tank(Math.PI, Color.ORANGE, maze, Tank.keyCodeOpHashMap2);
+    private Tank tank1 = new Tank(0, Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.keyCodeOpHashMap1);
+    private Tank tank2 = new Tank(Math.PI, Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.keyCodeOpHashMap2);
 
     // WIDTH and HEIGHT of the scene.
     // We add the thickness because at far right and bottom edges of the screen we are going to place

@@ -24,6 +24,10 @@ class Tank implements Maze.CollisionHandler {
     private final static double HEAD_WIDTH = BODY_WIDTH / 2;
     protected final static double HEAD_HEIGHT = BODY_HEIGHT / 4; // exported for use in Bullet.
 
+    private final Color HEAD_COLOR;
+    private final Color BODY_COLOR;
+    private final Color OUT_OF_AMNO_HEAD_COLOR;
+
     private Polygon headPolygon = new Polygon();
     private Polygon bodyPolygon = new Polygon();
     private Rectangle head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT);
@@ -36,7 +40,7 @@ class Tank implements Maze.CollisionHandler {
     private BulletManager bulletManager;
     private Maze maze;
 
-    protected Tank(double initialAngle, Color color, Maze maze, HashMap<KeyCode, Op> keyCodeOpHashMap) {
+    protected Tank(double initialAngle, Color bodyColor, Color headColor, Color outOfAmnoColor, Maze maze, HashMap<KeyCode, Op> keyCodeOpHashMap) {
         this.maze = maze;
         this.keyCodeOpHashMap = keyCodeOpHashMap;
 
@@ -48,8 +52,11 @@ class Tank implements Maze.CollisionHandler {
         );
         head.moveTo(headPoint);
 
-        headPolygon.setFill(color);
-        bodyPolygon.setFill(color);
+        this.BODY_COLOR = bodyColor;
+        this.HEAD_COLOR = headColor;
+        this.OUT_OF_AMNO_HEAD_COLOR = outOfAmnoColor;
+        headPolygon.setFill(HEAD_COLOR);
+        bodyPolygon.setFill(BODY_COLOR);
 
         rotate(initialAngle);
 
@@ -216,8 +223,6 @@ class Tank implements Maze.CollisionHandler {
 
     protected void handle(long nanos) {
         bulletManager.update(nanos);
-        pressedOps.add(Op.FIRE);
-        bulletManager.lock = false;
         if (pressedOps.contains(Op.FIRE)) {
             bulletManager.addBullet(
                     getBulletLaunchPoint(),
@@ -243,6 +248,12 @@ class Tank implements Maze.CollisionHandler {
             back();
         }
         maze.handleCollision(this);
+
+        if (bulletManager.isAmnoEmpty()) {
+            headPolygon.setFill(OUT_OF_AMNO_HEAD_COLOR);
+        } else {
+            headPolygon.setFill(HEAD_COLOR);
+        }
     }
 
     protected static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();

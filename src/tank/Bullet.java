@@ -13,8 +13,8 @@ import java.util.concurrent.TimeUnit;
 class Bullet implements Maze.CollisionHandler {
     private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
     private static final Paint COLOR = Color.RED;
-    protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze. // TODO VELOCITY needs to be > radius always i think
-    private static final long DURATION = TimeUnit.SECONDS.toNanos(15);
+    protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
+    private static final long DURATION = TimeUnit.SECONDS.toNanos(5);
 
     private Point2D velocity;
     private Circle circle;
@@ -77,7 +77,7 @@ class Bullet implements Maze.CollisionHandler {
         // side will hold the final side the object ended up colliding with, aka the first collision.
         Rectangle side = null;
         // Backtrack.
-        Point2D smallVelocity = velocity.multiply(-1.0 / 32.0);
+        Point2D smallVelocity = velocity.multiply(-1.0 / 8.0);
         do {
             moveBy(smallVelocity);
 

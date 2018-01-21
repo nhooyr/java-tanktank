@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 class BulletManager {
-    private static final int MAX_BULLETS = 500;
+    private static final int MAX_BULLETS = 5;
 
     private ArrayList<Bullet> bullets = new ArrayList<>(MAX_BULLETS);
     private Group group = new Group();
@@ -57,5 +57,9 @@ class BulletManager {
             }
         }
         return false;
+    }
+
+    protected boolean isAmnoEmpty() {
+        return bullets.size() == MAX_BULLETS;
     }
 }
