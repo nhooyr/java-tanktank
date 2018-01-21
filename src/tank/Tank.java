@@ -216,6 +216,8 @@ class Tank implements Maze.CollisionHandler {
 
     protected void handle(long nanos) {
         bulletManager.update(nanos);
+        pressedOps.add(Op.FIRE);
+        bulletManager.lock = false;
         if (pressedOps.contains(Op.FIRE)) {
             bulletManager.addBullet(
                     getBulletLaunchPoint(),

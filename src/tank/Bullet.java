@@ -13,12 +13,11 @@ import java.util.concurrent.TimeUnit;
 class Bullet implements Maze.CollisionHandler {
     private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
     private static final Paint COLOR = Color.RED;
-    protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
+    protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze. // TODO VELOCITY needs to be > radius always i think
     private static final long DURATION = TimeUnit.SECONDS.toNanos(15);
 
-    private Point2D decomposedVelocity;
+    private Point2D velocity;
     private Circle circle;
-    private double theta;
     private long expiry;
 
     protected Bullet(Point2D launchPoint, double theta, long nanos) {
@@ -27,24 +26,17 @@ class Bullet implements Maze.CollisionHandler {
         launchPoint = launchPoint.add(radiusForward);
 
         circle = new Circle(launchPoint.getX(), launchPoint.getY(), RADIUS, COLOR);
-        setTheta(theta);
+        velocity = Physics.decomposeVector(VELOCITY, theta);
 
         expiry = nanos + DURATION;
     }
 
-    private void setTheta(double theta) {
-        this.theta = theta;
-        decomposedVelocity = Physics.decomposeVector(VELOCITY, theta);
-    }
-
     private void horizontalBounce() {
-        double theta = -this.theta;
-        setTheta(theta);
+        velocity = new Point2D(velocity.getX(), -velocity.getY());
     }
 
     private void verticalBounce() {
-        double theta = -Math.PI - this.theta;
-        setTheta(theta);
+        velocity = new Point2D(-velocity.getX(), velocity.getY());
     }
 
     private void moveBy(Point2D velocity) {
@@ -53,7 +45,7 @@ class Bullet implements Maze.CollisionHandler {
     }
 
     protected void update() {
-        moveBy(decomposedVelocity);
+        moveBy(velocity);
     }
 
     protected long getExpiry() {
@@ -86,9 +78,9 @@ class Bullet implements Maze.CollisionHandler {
         // side will hold the final side the object ended up colliding with, aka the first collision.
         Rectangle side = null;
         // Backtrack.
-        Point2D decomposedVelocity = Physics.decomposeVector(-1, theta);
+        Point2D smallVelocity = Point2D.ZERO.subtract(velocity.multiply(1.0 / 32.0));
         do {
-            moveBy(decomposedVelocity);
+            moveBy(smallVelocity);
 
             for (int i = 0; i < sides.size(); i++) {
                 if (!Physics.checkCollision(circle, sides.get(i))) {
@@ -127,18 +119,11 @@ class Bullet implements Maze.CollisionHandler {
             corner = new Point2D(side.getX() + side.getWidth(), side.getY() + side.getHeight());
         }
 
-        Point2D diff = corner.subtract(center);
-        double difX = Math.abs(diff.getX());
-        double difY = Math.abs(diff.getY());
-
-        // Counter intuitive but true, draw it out to verify.
-        if (difX > difY) {
-            // The corner is farther away X wise and so this is a vertical bounce.
-            verticalBounce();
-        } else if (difX < difY) {
-            // The corner is farther away Y wise and so this is a horizontal bounce.
-            horizontalBounce();
-        }
+        // Magic. Researched to figure this out. Mostly obtained from https://gamedev.stackexchange.com/questions/10911/a-ball-hits-the-corner-where-will-it-deflect.
+        Point2D diff = center.subtract(corner);
+        double c = -2 * (velocity.getX() * diff.getX() + velocity.getY() * diff.getY()) / (diff.getX() * diff.getX() + diff.getY() * diff.getY());
+        Point2D vectorDelta = new Point2D(c * diff.getX(), c * diff.getY());
+        velocity = velocity.add(vectorDelta);
     }
 
     // Used for detecting which cells to check collisions with.
