@@ -10,6 +10,7 @@ import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Random;
 
 // TODO when spawning always make tanks face away from each other.
@@ -33,12 +34,12 @@ class Tank implements Maze.CollisionHandler {
     private Point2D decomposedVelocity;
     private Point2D negativeDecomposedVelocity;
     private BulletManager bulletManager;
+    private Maze maze;
 
-    protected BulletManager getBulletManager() {
-        return bulletManager;
-    }
+    protected Tank(double initialAngle, Color color, Maze maze, HashMap<KeyCode, Op> keyCodeOpHashMap) {
+        this.maze = maze;
+        this.keyCodeOpHashMap = keyCodeOpHashMap;
 
-    protected Tank(double initialAngle, Color color, Maze maze) {
         bulletManager = new BulletManager(maze);
 
         Point2D headPoint = new Point2D(
@@ -64,9 +65,13 @@ class Tank implements Maze.CollisionHandler {
         syncPolygons();
     }
 
+    protected BulletManager getBulletManager() {
+        return bulletManager;
+    }
+
     protected Node getNode() {
         // head needs to be added after so that it is in front. In case we want to change colors later.
-        return new Group(bodyPolygon, headPolygon, bulletManager.getNode());
+        return new Group(bodyPolygon, headPolygon);
     }
 
     // The direction of angles is reversed because the coordinate system is reversed.
@@ -193,7 +198,53 @@ class Tank implements Maze.CollisionHandler {
         FIRE,
     }
 
-    private static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();
+    private HashMap<KeyCode, Op> keyCodeOpHashMap;
+    // keys pressed since the last frame.
+    private HashSet<Op> pressedOps = new HashSet<>();
+
+    protected void handlePressed(KeyCode keyCode) {
+        pressedOps.add(keyCodeOpHashMap.get(keyCode));
+    }
+
+    protected void handleReleased(KeyCode keyCode) {
+        Op op = keyCodeOpHashMap.get(keyCode);
+        if (op == Op.FIRE) {
+            bulletManager.lock = false;
+        }
+        pressedOps.remove(op);
+    }
+
+    protected void handle(long nanos) {
+        bulletManager.update(nanos);
+        if (pressedOps.contains(Op.FIRE)) {
+            bulletManager.addBullet(
+                    getBulletLaunchPoint(),
+                    getTheta(),
+                    nanos
+            );
+            bulletManager.lock = true;
+        }
+        bulletManager.handleCollisions();
+
+        if (pressedOps.contains(Op.RIGHT)) {
+            right();
+        }
+        if (pressedOps.contains(Op.LEFT)) {
+            left();
+        }
+        maze.handleCollision(this);
+
+        if (pressedOps.contains(Op.FORWARD)) {
+            forward();
+        }
+        if (pressedOps.contains(Op.REVERSE)) {
+            back();
+        }
+        maze.handleCollision(this);
+    }
+
+    protected static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();
+
     static {
         keyCodeOpHashMap1.put(KeyCode.UP, Op.FORWARD);
         keyCodeOpHashMap1.put(KeyCode.RIGHT, Op.RIGHT);
@@ -203,7 +254,8 @@ class Tank implements Maze.CollisionHandler {
     }
 
 
-    private static final HashMap<KeyCode, Op> keyCodeOpHashMap2 = new HashMap<>();
+    protected static final HashMap<KeyCode, Op> keyCodeOpHashMap2 = new HashMap<>();
+
     static {
         keyCodeOpHashMap2.put(KeyCode.W, Op.FORWARD);
         keyCodeOpHashMap2.put(KeyCode.D, Op.RIGHT);

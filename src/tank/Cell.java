@@ -8,19 +8,47 @@ import java.util.ArrayList;
 class Cell {
     protected final static double LENGTH = 3.5 * Tank.BODY_HEIGHT;
 
-    // Used in the grid constructor.
-    protected int row;
-    protected int column;
+    private int row;
+    private int column;
+
+    protected int getRow() {
+        return row;
+    }
+
+    protected int getColumn() {
+        return column;
+    }
 
     // True means the side is opaque.
     // Protected so that the grid constructor can access.
-    protected MutableBoolean up;
-    protected MutableBoolean left;
-    protected MutableBoolean right;
-    protected MutableBoolean down;
+    private MutableBoolean up;
+    private MutableBoolean left;
+    private MutableBoolean right = new MutableBoolean();
+    private MutableBoolean down = new MutableBoolean();
 
-    // Protected so that the grid constructor can access.
-    protected ArrayList<MutableBoolean> yummySides;
+    public MutableBoolean getUp() {
+        return up;
+    }
+
+    public MutableBoolean getLeft() {
+        return left;
+    }
+
+    public MutableBoolean getRight() {
+        return right;
+    }
+
+    public MutableBoolean getDown() {
+        return down;
+    }
+
+
+    private ArrayList<MutableBoolean> yummySides = new ArrayList<>();
+
+    protected ArrayList<MutableBoolean> getYummySides() {
+        return yummySides;
+    }
+
     private double x;
     private double y;
 
@@ -34,15 +62,11 @@ class Cell {
 
         this.up = up;
         this.left = left;
-        this.right = new MutableBoolean();
-        this.down = new MutableBoolean();
 
         makeYummySides();
     }
 
     private void makeYummySides() {
-        yummySides = new ArrayList<>();
-
         // If up is true and this cell is not at the top row then it is yummy.
         if (up.value && row != 0) {
             yummySides.add(up);

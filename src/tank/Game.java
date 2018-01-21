@@ -3,20 +3,17 @@ package tank;
 import javafx.animation.AnimationTimer;
 import javafx.scene.Group;
 import javafx.scene.Scene;
-import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
-
-import java.util.HashSet;
 
 // All methods that will be called from JavaFX onto user code run on a
 // single thread so no synchronization across anything is necessary.
 // https://docs.oracle.com/javase/8/javafx/get-started-tutorial/jfx-architecture.htm
 class Game {
     private Maze maze = new Maze();
-    private Tank tank1 = new Tank(0, Color.BLUE, maze);
-    private Tank tank2 = new Tank(Math.PI, Color.ORANGE, maze);
+    private Tank tank1 = new Tank(0, Color.BLUE, maze, Tank.keyCodeOpHashMap1);
+    private Tank tank2 = new Tank(Math.PI, Color.ORANGE, maze, Tank.keyCodeOpHashMap2);
 
     // WIDTH and HEIGHT of the scene.
     // We add the thickness because at far right and bottom edges of the screen we are going to place
@@ -24,9 +21,6 @@ class Game {
     // See the Maze class.
     private final static double WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
     private final static double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
-
-    // keys pressed since the last frame.
-    private HashSet<KeyCode> pressedKeys = new HashSet<>();
 
     // bulletLock is used to ensure that a new bullet cannot be fired
     // until the bullet firing key is released.
@@ -41,7 +35,9 @@ class Game {
         root.getChildren().addAll(
                 maze.getNode(),
                 tank1.getNode(),
-                tank2.getNode()
+                tank2.getNode(),
+                tank1.getBulletManager().getNode(),
+                tank2.getBulletManager().getNode()
         );
 
         scene.addEventHandler(KeyEvent.KEY_PRESSED, this::handlePressed);
@@ -74,42 +70,26 @@ class Game {
     private void handle(long nanos) {
         fpsMeter.handle(nanos);
 
-        tank1.getBulletManager().update(nanos);
-        if (pressedKeys.contains(KeyCode.SPACE) && !bulletLock) {
-            bulletLock = true;
-            tank1.getBulletManager().addBullet(
-                    tank1.getBulletLaunchPoint(),
-                    tank1.getTheta(),
-                    nanos
-            );
+        // TODO in future use a single bullet manager and a separate bullet limiter.
+        if (tank1.getBulletManager().isDeadTank(tank1) || tank2.getBulletManager().isDeadTank(tank1)) {
+            // TODO tank1 wins.
         }
-        tank1.getBulletManager().handleCollisions();
+        if (tank1.getBulletManager().isDeadTank(tank2) || tank2.getBulletManager().isDeadTank(tank2)) {
+            // TODO tank2 wins.
+        }
 
-        if (pressedKeys.contains(KeyCode.RIGHT)) {
-            tank1.right();
-        }
-        if (pressedKeys.contains(KeyCode.LEFT)) {
-            tank1.left();
-        }
-        maze.handleCollision(tank1);
 
-        if (pressedKeys.contains(KeyCode.UP)) {
-            tank1.forward();
-        }
-        if (pressedKeys.contains(KeyCode.DOWN)) {
-            tank1.back();
-        }
-        maze.handleCollision(tank1);
+        tank1.handle(nanos);
+        tank2.handle(nanos);
     }
 
     private void handlePressed(KeyEvent e) {
-        pressedKeys.add(e.getCode());
+        tank1.handlePressed(e.getCode());
+        tank2.handlePressed(e.getCode());
     }
 
     private void handleReleased(KeyEvent e) {
-        if (e.getCode() == KeyCode.SPACE) {
-            bulletLock = false;
-        }
-        pressedKeys.remove(e.getCode());
+        tank1.handleReleased(e.getCode());
+        tank2.handleReleased(e.getCode());
     }
 }

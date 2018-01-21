@@ -14,6 +14,8 @@ class BulletManager {
     private Group group = new Group();
     private Maze maze;
 
+    protected boolean lock;
+
     protected BulletManager(Maze maze) {
         this.maze = maze;
     }
@@ -23,7 +25,7 @@ class BulletManager {
     }
 
     protected void addBullet(Point2D launchPoint, double theta, long nanos) {
-        if (bullets.size() >= MAX_BULLETS) {
+        if (lock || bullets.size() >= MAX_BULLETS) {
             return;
         }
         Bullet bullet = new Bullet(launchPoint, theta, nanos);

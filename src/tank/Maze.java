@@ -36,13 +36,13 @@ class Maze {
                 Cell.MutableBoolean left = new Cell.MutableBoolean();
                 // If we are not in the first column, then the left of the current cell is the right of the one left.
                 if (i > 0) {
-                    left = grid[i - 1][j].right;
+                    left = grid[i - 1][j].getRight();
                 }
 
                 Cell.MutableBoolean up = new Cell.MutableBoolean();
                 // If we are not in the first row, then the up of the current cell is the down of the one above.
                 if (j > 0) {
-                    up = grid[i][j - 1].down;
+                    up = grid[i][j - 1].getDown();
                 }
 
                 grid[i][j] = new Cell(i, j, up, left);
@@ -75,20 +75,20 @@ class Maze {
         ArrayList<Cell> yummyCells = getYummyCells();
         Cell cell = yummyCells.get(rand.nextInt(yummyCells.size()));
         while (true) {
-            int i = rand.nextInt(cell.yummySides.size());
-            Cell.MutableBoolean side = cell.yummySides.get(i);
+            int i = rand.nextInt(cell.getYummySides().size());
+            Cell.MutableBoolean side = cell.getYummySides().get(i);
 
             side.value = false;
-            cell.yummySides.remove(i);
+            cell.getYummySides().remove(i);
 
-            if (cell.up == side) {
-                cell = grid[cell.column][cell.row - 1];
-            } else if (cell.right == side) {
-                cell = grid[cell.column + 1][cell.row];
-            } else if (cell.down == side) {
-                cell = grid[cell.column][cell.row + 1];
-            } else if (cell.left == side) {
-                cell = grid[cell.column - 1][cell.row];
+            if (cell.getUp() == side) {
+                cell = grid[cell.getColumn()][cell.getRow() - 1];
+            } else if (cell.getRight() == side) {
+                cell = grid[cell.getColumn() + 1][cell.getRow()];
+            } else if (cell.getDown() == side) {
+                cell = grid[cell.getColumn()][cell.getRow() + 1];
+            } else if (cell.getLeft() == side) {
+                cell = grid[cell.getColumn() - 1][cell.getRow()];
             }
 
             if (!cell.isYummy()) {
