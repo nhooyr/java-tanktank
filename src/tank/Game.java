@@ -8,7 +8,6 @@ import javafx.scene.input.KeyEvent;
 import javafx.stage.Stage;
 
 import java.util.HashSet;
-import java.util.concurrent.TimeUnit;
 
 // All methods that will be called from JavaFX onto user code run on a
 // single thread so no synchronization across anything is necessary.
@@ -77,6 +76,9 @@ class Game {
         if (pressedKeys.contains(KeyCode.LEFT)) {
             tank.left();
         }
+        tank.syncPolygons();
+        maze.handleCollision(tank);
+
         if (pressedKeys.contains(KeyCode.UP)) {
             tank.forward();
         }
@@ -84,7 +86,9 @@ class Game {
             tank.back();
         }
         tank.syncPolygons();
+        maze.handleCollision(tank);
 
+        bulletManager.update();
         if (pressedKeys.contains(KeyCode.SPACE) && !bulletLock) {
             bulletLock = true;
             bulletManager.addBullet(
@@ -92,7 +96,9 @@ class Game {
                     tank.getTheta()
             );
         }
-        bulletManager.update();
+        bulletManager.handleCollisions();
+
+        tank.getCenter();
     }
 
     private void handlePressed(KeyEvent e) {

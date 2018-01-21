@@ -25,13 +25,10 @@ class BulletManager {
     }
 
     protected void update() {
-        bullets.forEach(bullet -> {
-            bullet.update();
-            try {
-                maze.handleBulletCollision(bullet);
-            } catch (ArrayIndexOutOfBoundsException e) {
-                System.out.println(bullet.getCenter());
-            }
-        });
+        bullets.forEach(bullet -> bullet.update());
+    }
+
+    protected void handleCollisions() {
+        bullets.forEach(bullet -> maze.handleCollision(bullet));
     }
 }

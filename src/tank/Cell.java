@@ -6,7 +6,7 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 
 class Cell {
-    protected final static int LENGTH = 3 * Tank.BODY_HEIGHT;
+    protected final static double LENGTH = 3.5 * Tank.BODY_HEIGHT;
 
     private int row;
     private int column;

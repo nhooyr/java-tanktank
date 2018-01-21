@@ -122,7 +122,7 @@ class Maze {
     // collisions against those.
     // This assumes that the object can only touch two horizontal or two vertical sides maximum at once.
     // We do not return early if a collision is detected because it is possible for multiple collisions to occur. TODO reevalute that assumption
-    protected void handleBulletCollision(CollisionHandler obj) {
+    protected void handleCollision(CollisionHandler obj) {
         Point2D objCenter = obj.getCenter();
         // Coordinates if the units were cells.
         double cellX = objCenter.getX() / Cell.LENGTH;
