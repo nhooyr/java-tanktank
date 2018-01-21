@@ -21,8 +21,8 @@ class Game {
     // We add the thickness because at far right and bottom edges of the screen we are going to place
     // the final sides of the grid and they need additional space because of how the grid drawing algorithm works.
     // See the Maze class.
-    private final static int WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
-    private final static int HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
+    private final static double WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
+    private final static double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
 
     // keys pressed since the last frame.
     private HashSet<KeyCode> pressedKeys;
@@ -79,11 +79,11 @@ class Game {
         if (pressedKeys.contains(KeyCode.DOWN)) {
             tank.back();
         }
+        tank.syncPolygons();
         if (pressedKeys.contains(KeyCode.SPACE) && !bulletLock) {
             bulletLock = true;
             bulletManager.addBullet(
-                    tank.getBulletLaunchX(),
-                    tank.getBulletLaunchY(),
+                    tank.getBulletLaunchPoint(),
                     tank.getTheta()
             );
         }

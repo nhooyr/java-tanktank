@@ -8,7 +8,7 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 
 class Cell {
-    protected final static int LENGTH = 3 * Tank.HEIGHT;
+    protected final static int LENGTH = 3 * Tank.BODY_HEIGHT;
 
     // TODO back to private
     protected int row;
@@ -59,15 +59,15 @@ class Cell {
         }
     }
 
-    protected Maze.CollisionStatus checkBulletCollision(Bullet bullet) {
+    protected CollisionStatus checkBulletCollision(Bullet bullet) {
         for (Node node : group.getChildren()) {
             Rectangle side = (Rectangle) node;
-            Maze.CollisionStatus collisionStatus = bullet.checkCollision(side);
-            if (collisionStatus != Maze.CollisionStatus.OK) {
+            CollisionStatus collisionStatus = bullet.checkCollision(side);
+            if (collisionStatus != CollisionStatus.OK) {
                 return collisionStatus;
             }
         }
-        return Maze.CollisionStatus.OK;
+        return CollisionStatus.OK;
     }
 
     protected Group group;

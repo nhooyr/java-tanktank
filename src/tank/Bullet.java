@@ -1,5 +1,6 @@
 package tank;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -7,24 +8,24 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
 class Bullet {
-    protected static final double RADIUS = Tank.HEAD_HEIGHT / 2; // exported for use in Tank.
+    private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
     private static final Paint COLOR = Color.RED;
     protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
-    private double dx;
-    private double dy;
+    private Point2D decomposedVelocity;
     private Circle circle;
     private double theta;
 
-    protected Bullet(Group group, double x, double y, double theta) {
-        circle = new Circle(x, y, RADIUS, COLOR);
+    protected Bullet(Group group, Point2D launchPoint, double theta) {
+        Point2D radiusForward = Physics.decomposeVector(Bullet.RADIUS, theta);
+        launchPoint = launchPoint.add(radiusForward);
+        circle = new Circle(launchPoint.getX(), launchPoint.getY(), RADIUS, COLOR);
         setTheta(theta);
         group.getChildren().add(circle);
     }
 
     private void setTheta(double theta) {
         this.theta = theta;
-        dx = Physics.DisplaceX(VELOCITY, theta);
-        dy = Physics.DisplaceY(VELOCITY, theta);
+        decomposedVelocity = Physics.decomposeVector(VELOCITY, theta);
     }
 
     protected void horizontalBounce() {
@@ -37,33 +38,31 @@ class Bullet {
         setTheta(theta);
     }
 
-    private void move(double dx, double dy) {
-        circle.setCenterX(circle.getCenterX() + dx);
-        circle.setCenterY(circle.getCenterY() + dy);
+    private void moveBy(Point2D velocity) {
+        circle.setCenterX(circle.getCenterX() + velocity.getX());
+        circle.setCenterY(circle.getCenterY() + velocity.getY());
     }
 
-
     protected void update() {
-        move(dx, dy);
+        moveBy(decomposedVelocity);
     }
 
     // The way this works is that first we check if the rectangle is intersecting with the bullet. If so,
     // then we need to figure out which side the bullet is on. So we move the bullet back until there is no
     // collision. Then we check which side is closest to the bullet and based on that return the appropriate
     // collision status.
-    protected Maze.CollisionStatus checkCollision(Rectangle rect) {
+    protected CollisionStatus checkCollision(Rectangle rect) {
         if (!rect.getBoundsInParent().intersects(circle.getBoundsInParent())) {
             // The bullet does not intersect the rect.
-            return Maze.CollisionStatus.OK;
+            return CollisionStatus.OK;
         }
 
         // Maybe increase the velocity if this is too computationally expensive. Does not seem like that so far though.
         // So whatever.
-        double dx = Physics.DisplaceX(0.1, theta);
-        double dy = Physics.DisplaceY(0.1, theta);
+        Point2D decomposedVelocity = Physics.decomposeVector(-0.1, theta);
 
         do {
-            move(-dx, -dy);
+            moveBy(decomposedVelocity);
         } while (rect.getBoundsInParent().intersects(circle.getBoundsInParent()));
 
 
@@ -80,8 +79,8 @@ class Bullet {
         double v = v1 < v2 ? v1 : v2;
 
         if (v < h) {
-            return Maze.CollisionStatus.HORIZONTAL;
+            return CollisionStatus.HORIZONTAL;
         }
-        return Maze.CollisionStatus.VERTICAL;
+        return CollisionStatus.VERTICAL;
     }
 }

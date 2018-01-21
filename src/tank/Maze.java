@@ -12,7 +12,7 @@ class Maze {
     private Cell[][] grid;
 
     // TODO we export this because we want to place the tank not in the grid, instead we should randomly place the tank in a cell.
-    protected final static int THICKNESS = (int) (Bullet.VELOCITY) * 2;
+    protected final static double THICKNESS = Bullet.VELOCITY * 2;
     protected final static int ROWS = 8;
     protected final static int COLUMNS = 10;
 
@@ -82,12 +82,6 @@ class Maze {
         }
     }
 
-    protected enum CollisionStatus {
-        OK,
-        VERTICAL,
-        HORIZONTAL,
-    }
-
     protected CollisionStatus checkBulletCollision(Bullet bullet) {
         // A clever way to optimize this potentially in the future would be to calculate the cell that object being
         // checked for collision against is in and then only check for collision against its sides.
@@ -102,4 +96,3 @@ class Maze {
         return CollisionStatus.OK;
     }
 }
-

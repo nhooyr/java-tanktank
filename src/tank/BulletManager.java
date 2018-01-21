@@ -1,5 +1,6 @@
 package tank;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 
 import java.util.ArrayList;
@@ -18,26 +19,23 @@ class BulletManager {
         this.tank = tank;
     }
 
-    protected void addBullet(double x, double y, double theta) {
-        Bullet bullet = new Bullet(group, x, y, theta);
+    protected void addBullet(Point2D launchPoint, double theta) {
+        Bullet bullet = new Bullet(group, launchPoint, theta);
         bullets.add(bullet);
     }
 
     protected void update() {
         bullets.forEach(bullet -> {
             bullet.update();
-            Maze.CollisionStatus collisionStatus = maze.checkBulletCollision(bullet);
-            // If there was a collision, the bullet will be moved back such that there is no collision anymore.
-            // We do not need to move it back ourselves.
+            CollisionStatus collisionStatus = maze.checkBulletCollision(bullet);
             switch (collisionStatus) {
                 case HORIZONTAL:
                     bullet.horizontalBounce();
-                    bullet.update();
                 case VERTICAL:
                     bullet.verticalBounce();
-                    bullet.update();
             }
+            // If there was a collision, the bullet will be moved back such that there is no collision anymore.
+            // We do not need to move it back ourselves.
         });
-        // TODO check collisions.
     }
 }

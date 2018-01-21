@@ -1,110 +1,99 @@
 package tank;
 
+import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
-import javafx.scene.transform.Rotate;
+import javafx.scene.shape.Polygon;
 
+// TODO when spawning always make tanks face away from each other.
 class Tank {
     protected final static int VELOCITY = 3; // exported for use in Bullet.
-    private final static int TURNING_ANGLE = 5;
-    private final static int WIDTH = 40;
-    protected  final static int HEIGHT = 30; // exported for use in Maze.
-    private final static int HEAD_WIDTH = WIDTH / 2;
-    protected final static int HEAD_HEIGHT = HEIGHT / 4; // exported for use in Bullet.
+    private final static double TURNING_ANGLE = Math.PI / 36;
     private final static Color COLOR = Color.BLUE;
 
-    private Group group;
+    private final static int BODY_WIDTH = 40;
+    protected final static int BODY_HEIGHT = 30; // exported for use in Maze.
+
+    private final static int HEAD_WIDTH = BODY_WIDTH / 2;
+    protected final static int HEAD_HEIGHT = BODY_HEIGHT / 4; // exported for use in Bullet.
+
+    private Polygon headPolygon;
+    private Polygon bodyPolygon;
     private Rectangle head;
     private Rectangle body;
-    private Rotate rotate;
-
+    private Point2D pivot;
+    private double theta;
+    private Point2D decomposedVelocity;
+    private Point2D negativeDecomposedVelocity;
 
     protected Tank(Group root) {
-        group = new Group();
+        body = new Rectangle(BODY_WIDTH, BODY_HEIGHT);
+        head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT);
+        Point2D headPoint = new Point2D(
+                body.getWidth() - head.getWidth() / 2, // half of head sticks out.
+                body.getHeight() / 2 - head.getHeight() / 2 // head is in the vertical middle of tank.
+        );
+        head.moveTo(headPoint);
 
-        body = new Rectangle(WIDTH, HEIGHT, COLOR);
-        head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT, COLOR);
-        head.setX(body.getX() + body.getWidth() - head.getWidth() / 2);
-        head.setY(body.getY() + body.getHeight() / 2 - head.getHeight() / 2);
+        bodyPolygon = new Polygon();
+        headPolygon = new Polygon();
+        headPolygon.setFill(COLOR);
+        bodyPolygon.setFill(COLOR);
 
-        rotate = new Rotate();
-        rotate.setPivotX(body.getWidth() / 2);
-        rotate.setPivotY(body.getHeight() / 2);
+        // Middle of body.
+        pivot = new Point2D(body.getWidth() / 2, body.getHeight() / 2);
 
-        // head needs to be added after so that it is in front.
-        group.getChildren().addAll(body, head);
-        group.getTransforms().add(rotate);
+        // Will set [negative]decomposedVelocity and initial angle.
+        // We can expose the initial angle in the constructor later for creating two tanks that do not face each other.
+        rotate(0);
+        moveBy(new Point2D(Maze.THICKNESS, Maze.THICKNESS));
 
-        group.setTranslateX(Maze.THICKNESS);
-        group.setTranslateY(Maze.THICKNESS);
-
-        root.getChildren().add(group);
+        // head needs to be added after so that it is in front. In case we want to change colors later.
+        root.getChildren().addAll(bodyPolygon, headPolygon);
+        syncPolygons();
     }
 
+    // The direction of angles is reversed because the coordinate system is reversed.
     protected void right() {
-        // This is really wierd... Why do we add the angle to move it right? Shouldn't it be the other way around?
-        // Vice versa for this.left()
-        rotate.setAngle(rotate.getAngle() + TURNING_ANGLE);
+        rotate(TURNING_ANGLE);
     }
 
     protected void left() {
-        rotate.setAngle(rotate.getAngle() - TURNING_ANGLE);
+        rotate(-TURNING_ANGLE);
+    }
+
+    protected void rotate(double theta) {
+        this.theta += theta;
+        body.rotate(pivot, theta);
+        head.rotate(pivot, theta);
+        decomposedVelocity = Physics.decomposeVector(VELOCITY, this.theta);
+        negativeDecomposedVelocity = Physics.decomposeVector(-VELOCITY, this.theta);
+    }
+
+    protected void syncPolygons() {
+        headPolygon.getPoints().setAll(head.getDoubles());
+        bodyPolygon.getPoints().setAll(body.getDoubles());
     }
 
     protected void forward() {
-        move(VELOCITY);
+        moveBy(decomposedVelocity);
     }
 
     protected void back() {
-        move(-VELOCITY);
+        moveBy(negativeDecomposedVelocity);
     }
 
-    private void move(int d) {
-        double theta = getTheta();
-
-        double x = group.getTranslateX() + Physics.DisplaceX(d, theta);
-        group.setTranslateX(x);
-
-        double y = group.getTranslateY() + Physics.DisplaceY(d, theta);
-        group.setTranslateY(y);
+    private void moveBy(Point2D point) {
+        head.moveBy(point);
+        body.moveBy(point);
+        pivot = pivot.add(point);
     }
 
-    private double width() {
-        return head.getX() + head.getWidth();
-    }
-
-    private double height() {
-        return body.getHeight();
-    }
-
-    protected double getBulletLaunchX() {
-        double x = group.getTranslateX();
-        x += rotate.getTx();
-
-        // Now we are the top right of the tank.
-        // We need to move the center of the bullet to the width of the tank plus the radius of the bullet.
-        // This will spawn the bullet right at the very tip of the tank. Furthermore, we move the center of the
-        // bullet to half of the height of the tank. This will spawn it at the middle of the tip.
-        // The exact same operations apply for the bottom function.
-        double theta = getTheta();
-        x += Physics.DisplaceX(width() + Bullet.RADIUS, theta);
-        x += Physics.DisplaceX(height() / 2, theta + Math.PI / 2);
-        return x;
-    }
-
-    protected double getBulletLaunchY() {
-        double y = group.getTranslateY();
-        y += rotate.getTy();
-
-        // For a description of these transformations, see getBulletLaunchX().
-        double theta = getTheta();
-        y += Physics.DisplaceY(width() + Bullet.RADIUS, theta);
-        y += Physics.DisplaceY(height() / 2, theta + Math.PI / 2);
-        return y;
+    protected Point2D getBulletLaunchPoint() {
+        return head.getMidRight();
     }
 
     protected double getTheta() {
-        return Math.toRadians(rotate.getAngle());
+        return theta;
     }
 }
