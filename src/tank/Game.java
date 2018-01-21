@@ -5,6 +5,7 @@ import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 
 import java.util.HashSet;
@@ -13,9 +14,9 @@ import java.util.HashSet;
 // single thread so no synchronization across anything is necessary.
 // https://docs.oracle.com/javase/8/javafx/get-started-tutorial/jfx-architecture.htm
 class Game {
-    private Tank tank;
-    private Maze maze;
-    private BulletManager bulletManager;
+    private Maze maze = new Maze();
+    private Tank tank1 = new Tank(0, Color.BLUE, maze);
+    private Tank tank2 = new Tank(Math.PI, Color.ORANGE, maze);
 
     // WIDTH and HEIGHT of the scene.
     // We add the thickness because at far right and bottom edges of the screen we are going to place
@@ -36,9 +37,12 @@ class Game {
 
         Group root = new Group();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
-        maze = new Maze(root);
-        tank = new Tank(root);
-        bulletManager = new BulletManager(root, maze, tank);
+
+        root.getChildren().addAll(
+                maze.getNode(),
+                tank1.getNode(),
+                tank2.getNode()
+        );
 
         scene.addEventHandler(KeyEvent.KEY_PRESSED, this::handlePressed);
         scene.addEventHandler(KeyEvent.KEY_RELEASED, this::handleReleased);
@@ -58,7 +62,7 @@ class Game {
         timer.start();
     }
 
-    FPSMeter fpsMeter = new FPSMeter();
+    private FPSMeter fpsMeter = new FPSMeter();
 
     // The game loop runs on an AnimationTimer which calls handle() about every 1/60 of a second.
     // Rendering and updating are handled separately in JavaFX so this is the standard design of a game loop.
@@ -70,35 +74,32 @@ class Game {
     private void handle(long nanos) {
         fpsMeter.handle(nanos);
 
-        if (pressedKeys.contains(KeyCode.RIGHT)) {
-            tank.right();
-        }
-        if (pressedKeys.contains(KeyCode.LEFT)) {
-            tank.left();
-        }
-        tank.syncPolygons();
-        maze.handleCollision(tank);
-
-        if (pressedKeys.contains(KeyCode.UP)) {
-            tank.forward();
-        }
-        if (pressedKeys.contains(KeyCode.DOWN)) {
-            tank.back();
-        }
-        tank.syncPolygons();
-        maze.handleCollision(tank);
-
-        bulletManager.update();
+        tank1.getBulletManager().update(nanos);
         if (pressedKeys.contains(KeyCode.SPACE) && !bulletLock) {
             bulletLock = true;
-            bulletManager.addBullet(
-                    tank.getBulletLaunchPoint(),
-                    tank.getTheta()
+            tank1.getBulletManager().addBullet(
+                    tank1.getBulletLaunchPoint(),
+                    tank1.getTheta(),
+                    nanos
             );
         }
-        bulletManager.handleCollisions();
+        tank1.getBulletManager().handleCollisions();
 
-        tank.getCenter();
+        if (pressedKeys.contains(KeyCode.RIGHT)) {
+            tank1.right();
+        }
+        if (pressedKeys.contains(KeyCode.LEFT)) {
+            tank1.left();
+        }
+        maze.handleCollision(tank1);
+
+        if (pressedKeys.contains(KeyCode.UP)) {
+            tank1.forward();
+        }
+        if (pressedKeys.contains(KeyCode.DOWN)) {
+            tank1.back();
+        }
+        maze.handleCollision(tank1);
     }
 
     private void handlePressed(KeyEvent e) {

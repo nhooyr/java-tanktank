@@ -8,13 +8,14 @@ import java.util.ArrayList;
 class Cell {
     protected final static double LENGTH = 3.5 * Tank.BODY_HEIGHT;
 
-    private int row;
-    private int column;
+    // Used in the grid constructor.
+    protected int row;
+    protected int column;
 
     // True means the side is opaque.
-    private MutableBoolean up;
-    private MutableBoolean left;
     // Protected so that the grid constructor can access.
+    protected MutableBoolean up;
+    protected MutableBoolean left;
     protected MutableBoolean right;
     protected MutableBoolean down;
 
@@ -25,9 +26,9 @@ class Cell {
 
     private static final Color COLOR = Color.BLACK;
 
-    protected Cell(int row, int column, MutableBoolean up, MutableBoolean left) {
-        this.row = row;
+    protected Cell(int column, int row, MutableBoolean up, MutableBoolean left) {
         this.column = column;
+        this.row = row;
         this.x = column * Cell.LENGTH;
         this.y = row * Cell.LENGTH;
 
@@ -63,17 +64,30 @@ class Cell {
         }
     }
 
-    // The length of the rectangles in the group is extended by the thickness because we want overlap in case
-    // one of the sides of a vertex is false, then the middle part won't disappear.
-    // TODO make up above comment more clear.
+    protected boolean isYummy() {
+        int yummyThreshold = 2;
+        if (column == 0 ||
+                row == 0 ||
+                column == Maze.COLUMNS - 1 ||
+                row == Maze.ROWS - 1) {
+            // We make bordering cells more yummy to ensure we do not any encircled areas and to allow for a open outer
+            // area. An interesting map element.
+            // No proof that this ensures no encircling areas but it is my intuition.
+            yummyThreshold = 1;
+        }
+        return yummySides.size() > yummyThreshold;
+    }
+
     protected Rectangle getSideUp() {
-        return getSide(this.up, x, y, Cell.LENGTH + Maze.THICKNESS, Maze.THICKNESS);
+        return getSide(this.up, x, y, Cell.LENGTH, Maze.THICKNESS);
     }
 
     protected Rectangle getSideLeft() {
-        return getSide(this.left, x, y, Maze.THICKNESS, Cell.LENGTH + Maze.THICKNESS);
+        return getSide(this.left, x, y, Maze.THICKNESS, Cell.LENGTH);
     }
 
+    // We add maze thickness to the length's in the down side and right side to prevent gaping squares from appearing
+    // where a invisible side up or side left would be.
     protected Rectangle getSideDown() {
         return getSide(this.down, x, y + Cell.LENGTH, Cell.LENGTH + Maze.THICKNESS, Maze.THICKNESS);
     }
@@ -90,7 +104,6 @@ class Cell {
         }
         return rect;
     }
-
 
     static class MutableBoolean {
 

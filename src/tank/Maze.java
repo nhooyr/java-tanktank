@@ -2,6 +2,7 @@ package tank;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
@@ -12,37 +13,36 @@ class Maze {
     private Rectangle[][] horizontalSides = new Rectangle[COLUMNS][ROWS + 1];
     private Rectangle[][] verticalSides = new Rectangle[COLUMNS + 1][ROWS];
 
-    // TODO maybe have a grid class?
-    private Cell[][] grid;
+    private Cell[][] grid = new Cell[COLUMNS][ROWS];
 
-    // TODO we export this because we want to place the tank not in the grid, instead we should randomly place the tank in a cell.
+    // These three are used in various places.
     protected final static double THICKNESS = Bullet.VELOCITY * 2;
     protected final static int ROWS = 8;
     protected final static int COLUMNS = 10;
 
-    protected Maze(Group root) {
+    protected Maze() {
         makeGrid();
         eatGrid();
         drawGrid();
-        root.getChildren().add(group);
+    }
+
+    protected Node getNode() {
+        return group;
     }
 
     private void makeGrid() {
-        // TODO should be columns first because column is x value.
-        grid = new Cell[ROWS][COLUMNS];
-
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLUMNS; j++) {
+        for (int i = 0; i < COLUMNS; i++) {
+            for (int j = 0; j < ROWS; j++) {
                 Cell.MutableBoolean left = new Cell.MutableBoolean();
                 // If we are not in the first column, then the left of the current cell is the right of the one left.
-                if (j != 0) {
-                    left = grid[i][j - 1].right;
+                if (i > 0) {
+                    left = grid[i - 1][j].right;
                 }
 
                 Cell.MutableBoolean up = new Cell.MutableBoolean();
                 // If we are not in the first row, then the up of the current cell is the down of the one above.
-                if (i != 0) {
-                    up = grid[i - 1][j].down;
+                if (j > 0) {
+                    up = grid[i][j - 1].down;
                 }
 
                 grid[i][j] = new Cell(i, j, up, left);
@@ -51,10 +51,10 @@ class Maze {
     }
 
     private ArrayList<Cell> getYummyCells() {
-        ArrayList<Cell> yummyCells = new ArrayList<>(ROWS * COLUMNS);
+        ArrayList<Cell> yummyCells = new ArrayList<>();
         for (Cell[] cells : grid) {
             for (Cell cell : cells) {
-                if (cell.yummySides.size() > 1) {
+                if (cell.isYummy()) {
                     yummyCells.add(cell);
                 }
             }
@@ -62,39 +62,66 @@ class Maze {
         return yummyCells;
     }
 
+    // The way we generate the maze is by eating the grid. We select a random cell that is "yummy", meaning it has enough
+    // removable sides. We remove one of its sides randomly and then based on which side we removed, we move into the adjacent
+    // cell and repeat. Once the cell we move into is not yummy, we select another random cell from the rest of the grid that is
+    // yummy and then repeat.
+    // A cell is yummy if it has more than two eatable sides. If the cell lies on the outer ring of cells, then it is yummy
+    // if it has more than one eatable side. See isYummy() on the Cell class.
+    // Why all of this? I am not sure if any of it is meaningful. It was just intuition and I like the mazes it generates.
+    // The mazes are very open and allow for diverse strategy.
     private void eatGrid() {
         Random rand = new Random();
+        ArrayList<Cell> yummyCells = getYummyCells();
+        Cell cell = yummyCells.get(rand.nextInt(yummyCells.size()));
         while (true) {
-            ArrayList<Cell> yummyCells = getYummyCells();
-            if (yummyCells.isEmpty()) {
-                return;
-            }
-            Cell cell = yummyCells.get(rand.nextInt(yummyCells.size()));
-
             int i = rand.nextInt(cell.yummySides.size());
             Cell.MutableBoolean side = cell.yummySides.get(i);
+
             side.value = false;
             cell.yummySides.remove(i);
+
+            if (cell.up == side) {
+                cell = grid[cell.column][cell.row - 1];
+            } else if (cell.right == side) {
+                cell = grid[cell.column + 1][cell.row];
+            } else if (cell.down == side) {
+                cell = grid[cell.column][cell.row + 1];
+            } else if (cell.left == side) {
+                cell = grid[cell.column - 1][cell.row];
+            }
+
+            if (!cell.isYummy()) {
+                yummyCells = getYummyCells();
+                if (yummyCells.size() == 0) {
+                    return;
+                }
+                cell = yummyCells.get(rand.nextInt(yummyCells.size()));
+            }
         }
     }
 
-    protected void drawGrid() {
-        for (int i = 0; i < ROWS; i++) {
-            for (int j = 0; j < COLUMNS; j++) {
+    private void drawGrid() {
+        for (int i = 0; i < COLUMNS; i++) {
+            for (int j = 0; j < ROWS; j++) {
                 Cell cell = grid[i][j];
+
                 Rectangle sideRight = cell.getSideRight();
-                verticalSides[j + 1][i] = sideRight;
+                verticalSides[i + 1][j] = sideRight;
 
                 Rectangle sideDown = cell.getSideDown();
-                horizontalSides[j][i + 1] = sideDown;
+                horizontalSides[i][j + 1] = sideDown;
 
-                if (j == 0) {
-                    Rectangle sideLeft = cell.getSideLeft();
-                    verticalSides[j][i] = sideLeft;
-                }
+                // We are in the first column and so we need to grab the left sides too.
                 if (i == 0) {
+                    Rectangle sideLeft = cell.getSideLeft();
+                    verticalSides[i][j] = sideLeft;
+                }
+
+                // We are in the first row and so we need to grab the up sides too.
+                if (j == 0) {
                     Rectangle sideUp = cell.getSideUp();
-                    horizontalSides[j][i] = sideUp;
+                    horizontalSides[i][j] = sideUp;
                 }
             }
         }

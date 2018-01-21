@@ -2,33 +2,58 @@ package tank;
 
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
+import javafx.scene.Node;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 class BulletManager {
-    private ArrayList<Bullet> bullets;
-    private Group group;
-    private Maze maze;
-    private Tank tank;
+    private static final int MAX_BULLETS = 10;
 
-    protected BulletManager(Group root, Maze maze, Tank tank) {
-        bullets = new ArrayList<>(100);
-        group = new Group();
-        root.getChildren().add(group);
+    private ArrayList<Bullet> bullets = new ArrayList<>(MAX_BULLETS);
+    private Group group = new Group();
+    private Maze maze;
+
+    protected BulletManager(Maze maze) {
         this.maze = maze;
-        this.tank = tank;
     }
 
-    protected void addBullet(Point2D launchPoint, double theta) {
-        Bullet bullet = new Bullet(group, launchPoint, theta);
+    protected Node getNode() {
+        return group;
+    }
+
+    protected void addBullet(Point2D launchPoint, double theta, long nanos) {
+        if (bullets.size() >= MAX_BULLETS) {
+            return;
+        }
+        Bullet bullet = new Bullet(launchPoint, theta, nanos);
+        group.getChildren().add(bullet.getShape());
         bullets.add(bullet);
     }
 
-    protected void update() {
-        bullets.forEach(bullet -> bullet.update());
+    protected void update(long nanos) {
+        Iterator<Bullet> it = bullets.iterator();
+        while (it.hasNext()) {
+            Bullet bullet = it.next();
+            if (nanos > bullet.getExpiry()) {
+                it.remove();
+                group.getChildren().remove(bullet.getShape());
+            } else {
+                bullet.update();
+            }
+        }
     }
 
     protected void handleCollisions() {
         bullets.forEach(bullet -> maze.handleCollision(bullet));
+    }
+
+    protected boolean isDeadTank(Tank tank) {
+        for (Bullet bullet : bullets) {
+            if (tank.checkCollision(bullet.getShape())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
