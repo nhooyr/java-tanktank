@@ -5,7 +5,9 @@ import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -17,11 +19,10 @@ import java.util.Optional;
 // https://docs.oracle.com/javase/8/javafx/get-started-tutorial/jfx-architecture.htm
 class Game {
     private Maze maze = new Maze();
-    // TODO naming is awkward here, need a better system.
     private Tank tank1 = new Tank("blue", Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.keyCodeOpHashMap1, 0);
     private Tank tank2 = new Tank("pink", Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.keyCodeOpHashMap2, Math.PI);
 
-    Stage stage;
+    private final Stage stage;
 
     // WIDTH and HEIGHT of the scene.
     // We add the thickness because at far right and bottom edges of the screen we are going to place
@@ -63,7 +64,13 @@ class Game {
         timer.start();
     }
 
-    private FPSMeter fpsMeter = new FPSMeter();
+    private final static ButtonType restartButtonType = new ButtonType("RESTART", ButtonBar.ButtonData.NEXT_FORWARD);
+    // This is unfortunate but javafx sucks. One of the buttons need to be a cancel button otherwise you cant X the dialog...
+    // I'd rather not add a third button so this is how its going to work unfortunately. Worse part is that it treats
+    // closing the window as clicking the cancel button, which is certainly not necessarily the case. Maybe this is a misuse
+    // of alerts but whatever.
+    private final static ButtonType mainMenuButtonType = new ButtonType("MAIN MENU", ButtonBar.ButtonData.NO);
+    private final FPSMeter fpsMeter = new FPSMeter();
 
     // The game loop runs on an AnimationTimer which calls handle() about every 1/60 of a second.
     // Rendering and updating are handled separately in JavaFX so this is the standard design of a game loop.
@@ -106,26 +113,24 @@ class Game {
             alert.setGraphic(graphic);
             alert.setContentText(alertContent);
 
+            alert.getButtonTypes().setAll(mainMenuButtonType, restartButtonType);
+
             // Must run later because we cannot call alert.showAndWait() during animation processing. See its docs.
             // And we might want animation to continue down the road anyhow.
             Platform.runLater(() -> {
-                ButtonType restartButtonType = new ButtonType("RESTART", ButtonBar.ButtonData.OK_DONE);
-                alert.getButtonTypes().add(restartButtonType);
 
-                Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
-                okButton.setDefaultButton(false);
-                okButton.setText("MAIN MENU");
-
-                Button restartButton = (Button) alert.getDialogPane().lookupButton(restartButtonType);
-                restartButton.setDefaultButton(true);
-
+                // This is optional because the alert can be abnormally closed and return no result.
+                // See https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/Dialog.html
                 Optional<ButtonType> buttonType = alert.showAndWait();
-                if (buttonType.get() == ButtonType.OK) {
+
+                // If the alert had no result, then we default to showing the main menu.
+                if (!buttonType.isPresent() || buttonType.get() == mainMenuButtonType) {
                     MainMenu.display(stage);
-                } else {
-                    Game game = new Game(stage);
-                    game.start();
+                    return;
                 }
+
+                Game game = new Game(stage);
+                game.start();
             });
             return;
         }
@@ -146,8 +151,6 @@ class Game {
         tank1.handle(nanos);
         tank2.handle(nanos);
     }
-
-    private boolean done = false;
 
     private void handlePressed(KeyEvent e) {
         tank1.handlePressed(e.getCode());
