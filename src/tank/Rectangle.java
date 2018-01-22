@@ -8,22 +8,22 @@ class Rectangle {
     private double width;
     private double height;
 
-    protected double getWidth() {
+    double getWidth() {
         return width;
     }
 
-    protected double getHeight() {
+    double getHeight() {
         return height;
     }
 
-    protected Rectangle(Rectangle rect) {
+    Rectangle(final Rectangle rect) {
         this.points = rect.points.clone();
         this.origin = rect.origin.add(Point2D.ZERO);
-        this.width = width;
-        this.height = height;
+        this.width = rect.width;
+        this.height = rect.height;
     }
 
-    protected Rectangle(double width, double height) {
+    Rectangle(final double width, final double height) {
         points.clone();
         this.width = width;
         this.height = height;
@@ -33,28 +33,28 @@ class Rectangle {
         points[3] = new Point2D(0, height);
     }
 
-    protected void moveBy(Point2D p) {
+    void moveBy(final Point2D p) {
         for (int i = 0; i < points.length; i++) {
             points[i] = points[i].add(p);
         }
         origin.add(p);
     }
 
-    protected void moveTo(Point2D p) {
-        Point2D dif = p.subtract(origin);
+    void moveTo(final Point2D p) {
+        final Point2D dif = p.subtract(origin);
         moveBy(dif);
     }
 
-    protected void rotate(Point2D pivot, double theta) {
+    void rotate(final Point2D pivot, final double theta) {
         for (int i = 0; i < points.length; i++) {
             points[i] = Physics.rotate(points[i], pivot, theta);
         }
     }
 
-    protected Double[] getDoubles() {
-        Double[] doubles = new Double[points.length * 2];
+    Double[] getDoubles() {
+        final Double[] doubles = new Double[points.length * 2];
         for (int i = 0; i < points.length; i++) {
-            int j = i * 2;
+            final int j = i * 2;
             doubles[j] = points[i].getX();
             doubles[j + 1] = points[i].getY();
         }
@@ -62,9 +62,9 @@ class Rectangle {
     }
 
     // Needed for figuring out the position in which to launch the bullet.
-    protected Point2D getMidRight() {
-        Point2D topRight = points[1];
-        Point2D bottomRight = points[2];
+    Point2D getMidRight() {
+        final Point2D topRight = points[1];
+        final Point2D bottomRight = points[2];
         return topRight.midpoint(bottomRight);
     }
 }

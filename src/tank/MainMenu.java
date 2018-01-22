@@ -14,38 +14,38 @@ import javafx.stage.Stage;
 import java.awt.*;
 import java.net.URI;
 
-// TODO decorate the main menu with tanks and also use proper javafx layouting instead of hard coding.
+// TODO decorate the main menu with tanks and also use idiomatic javafx layouting instead of hard coding.
 class MainMenu {
     private final static double WIDTH = 300;
     private final static double HEIGHT = 200;
 
-    static protected void display(Stage stage) {
-        Group root = new Group();
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
+    static void display(final Stage stage) {
+        final Group root = new Group();
+        final Scene scene = new Scene(root, WIDTH, HEIGHT);
 
-        Text title = new Text("Tank Trouble");
+        final Text title = new Text("Tank Trouble");
         title.setFont(Font.font(30));
-        Bounds titleBounds = title.getLayoutBounds();
+        final Bounds titleBounds = title.getLayoutBounds();
         // Center.
         title.setLayoutX(WIDTH / 2 - titleBounds.getWidth() / 2);
         title.setLayoutY(titleBounds.getHeight() + 10);
 
-        Button playButton = new Button("play");
+        final Button playButton = new Button("play");
         playButton.setDefaultButton(true);
         playButton.setPrefWidth(60);
         playButton.setOnAction(event -> {
-            Game game = new Game(stage);
+            final Game game = new Game(stage);
             game.start();
         });
 
-        Button helpButton = new Button("help");
+        final Button helpButton = new Button("help");
         helpButton.setPrefWidth(60);
         helpButton.setOnAction(event -> {
             try {
                 Desktop.getDesktop().browse(new URI("https://github.com/nhooyr/java-tanktank"));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 e.printStackTrace();
-                Alert alert = new Alert(Alert.AlertType.ERROR);
+                final Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Tank Tank");
                 alert.setHeaderText("Help link could not be opened");
                 alert.setContentText("Please take a look at the printed stack trace.");
@@ -53,7 +53,7 @@ class MainMenu {
             }
         });
 
-        VBox vbox = new VBox(20);
+        final VBox vbox = new VBox(20);
         vbox.getChildren().addAll(
                 playButton,
                 helpButton

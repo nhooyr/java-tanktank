@@ -12,17 +12,17 @@ import java.util.concurrent.TimeUnit;
 
 class Bullet implements Maze.CollisionHandler {
     private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
-    protected static final Paint COLOR = Color.RED; // Used by Game.
-    protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
+    private static final Paint COLOR = Color.RED;
+    static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
     private static final long DURATION = TimeUnit.SECONDS.toNanos(15);
 
     private Point2D velocity;
     private final Circle circle;
     private final long expiry;
 
-    protected Bullet(Point2D launchPoint, double theta, long nanos) {
+    Bullet(Point2D launchPoint, final double theta, final long nanos) {
         // We add velocity so the Tank does not instantly die from its own bullet.
-        Point2D radiusForward = Physics.decomposeVector(RADIUS + VELOCITY, theta);
+        final Point2D radiusForward = Physics.decomposeVector(RADIUS + VELOCITY, theta);
         launchPoint = launchPoint.add(radiusForward);
 
         circle = new Circle(launchPoint.getX(), launchPoint.getY(), RADIUS, COLOR);
@@ -39,20 +39,20 @@ class Bullet implements Maze.CollisionHandler {
         velocity = new Point2D(-velocity.getX(), velocity.getY());
     }
 
-    private void moveBy(Point2D velocity) {
+    private void moveBy(final Point2D velocity) {
         circle.setCenterX(circle.getCenterX() + velocity.getX());
         circle.setCenterY(circle.getCenterY() + velocity.getY());
     }
 
-    protected void update() {
+    void update() {
         moveBy(velocity);
     }
 
-    protected long getExpiry() {
+    long getExpiry() {
         return expiry;
     }
 
-    protected Shape getShape() {
+    Shape getShape() {
         return circle;
     }
 
@@ -60,7 +60,7 @@ class Bullet implements Maze.CollisionHandler {
     // then we need to figure out which side the bullet is on. So we move the bullet back until there is no
     // collision. Then we check which side is closest to the bullet and based on that return the appropriate
     // collision status.
-    public void handleCollision(ArrayList<Rectangle> sides) {
+    public void handleCollision(final ArrayList<Rectangle> sides) {
         for (int i = 0; i < sides.size(); i++) {
             if (!Physics.checkCollision(circle, sides.get(i))) {
                 // The bullet does not intersect the side.
@@ -81,7 +81,7 @@ class Bullet implements Maze.CollisionHandler {
         // this by editing BulletManager to allow for a stream of bullets and then move forward and back as you hit a corner.
         // This should not affect the trajectory of reflected bullets but it does, and it does more if smallVelocity is larger.
         // There are improvements that can be made to this but whatever.
-        Point2D smallVelocity = velocity.multiply(-1.0 / 64.0);
+        final Point2D smallVelocity = velocity.multiply(-1.0 / 64.0);
         do {
             moveBy(smallVelocity);
 
@@ -93,9 +93,10 @@ class Bullet implements Maze.CollisionHandler {
             }
         } while (sides.size() > 0);
 
-        double x = circle.getCenterX();
-        double y = circle.getCenterY();
+        final double x = circle.getCenterX();
+        final double y = circle.getCenterY();
 
+        assert side != null;
         if (x >= side.getX() && x <= side.getX() + side.getWidth()) {
             horizontalBounce();
             return;
@@ -114,7 +115,7 @@ class Bullet implements Maze.CollisionHandler {
         // I am still not sure how exactly the solutions are equivalent but I tested the velocity vectors produced
         // by both and they were in fact always equivalent if not negligently different (like difference of e-15).
 
-        Point2D corner;
+        final Point2D corner;
 
         // TODO this could be cleaned up if we used our custom Rectangle class for the Maze.
         if (x < side.getX() && y < side.getY()) {
@@ -131,13 +132,12 @@ class Bullet implements Maze.CollisionHandler {
             corner = new Point2D(side.getX() + side.getWidth(), side.getY() + side.getHeight());
         }
 
-        Point2D center = getCenter();
+        final Point2D center = getCenter();
         // Normal points from the corner to the center of the circle.
-        Point2D normal = center.subtract(corner).normalize();
+        final Point2D normal = center.subtract(corner).normalize();
         velocity = velocity.subtract(normal.multiply(velocity.dotProduct(normal)).multiply(2));
     }
 
-    // Used for detecting which cells to check collisions with.
     public Point2D getCenter() {
         return new Point2D(circle.getCenterX(), circle.getCenterY());
     }

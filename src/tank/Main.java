@@ -1,7 +1,6 @@
 package tank;
 
 import javafx.application.Application;
-import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
 
@@ -10,7 +9,7 @@ import javafx.stage.Stage;
 public class Main extends Application {
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(final Stage stage) throws Exception {
         stage.setResizable(false);
         stage.setTitle("Tank Tank");
 
@@ -18,7 +17,7 @@ public class Main extends Application {
         stage.show();
     }
 
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         launch(args);
     }
 }

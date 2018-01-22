@@ -9,27 +9,27 @@ import java.util.ArrayList;
 import java.util.Random;
 
 class Maze {
-    private Group group = new Group();
-    private Rectangle[][] horizontalSides = new Rectangle[COLUMNS][ROWS + 1];
-    private Rectangle[][] verticalSides = new Rectangle[COLUMNS + 1][ROWS];
+    private final Group group = new Group();
+    private final Rectangle[][] horizontalSides = new Rectangle[COLUMNS][ROWS + 1];
+    private final Rectangle[][] verticalSides = new Rectangle[COLUMNS + 1][ROWS];
 
-    private Cell[][] grid = new Cell[COLUMNS][ROWS];
+    private final Cell[][] grid = new Cell[COLUMNS][ROWS];
 
     // These three are used in various places.
     // This is twice the bullet velocity to prevent the bullet from moving through any of the walls without a collision being detected.
     // Given the bullet velocity itself is defined to be greater than the tank velocity, this also ensures that the tank does not
     // punch through any walls without the collision being detected.
-    protected final static double THICKNESS = Bullet.VELOCITY * 2;
-    protected final static int ROWS = 8;
-    protected final static int COLUMNS = 10;
+    final static double THICKNESS = Bullet.VELOCITY * 2;
+    final static int ROWS = 8;
+    final static int COLUMNS = 10;
 
-    protected Maze() {
+    Maze() {
         makeGrid();
         eatGrid();
         drawGrid();
     }
 
-    protected Node getNode() {
+    Node getNode() {
         return group;
     }
 
@@ -54,9 +54,9 @@ class Maze {
     }
 
     private ArrayList<Cell> getYummyCells() {
-        ArrayList<Cell> yummyCells = new ArrayList<>();
-        for (Cell[] cells : grid) {
-            for (Cell cell : cells) {
+        final ArrayList<Cell> yummyCells = new ArrayList<>();
+        for (final Cell[] cells : grid) {
+            for (final Cell cell : cells) {
                 if (cell.isYummy()) {
                     yummyCells.add(cell);
                 }
@@ -74,12 +74,12 @@ class Maze {
     // Why all of this? I am not sure if any of it is meaningful. It was just intuition and I like the mazes it generates.
     // The mazes are very open and allow for diverse strategy.
     private void eatGrid() {
-        Random rand = new Random();
+        final Random rand = new Random();
         ArrayList<Cell> yummyCells = getYummyCells();
         Cell cell = yummyCells.get(rand.nextInt(yummyCells.size()));
         while (true) {
-            int i = rand.nextInt(cell.getYummySides().size());
-            Cell.MutableBoolean side = cell.getYummySides().get(i);
+            final int i = rand.nextInt(cell.getYummySides().size());
+            final Cell.MutableBoolean side = cell.getYummySides().get(i);
 
             side.value = false;
             cell.getYummySides().remove(i);
@@ -107,37 +107,37 @@ class Maze {
     private void drawGrid() {
         for (int i = 0; i < COLUMNS; i++) {
             for (int j = 0; j < ROWS; j++) {
-                Cell cell = grid[i][j];
+                final Cell cell = grid[i][j];
 
-                Rectangle sideRight = cell.getSideRight();
+                final Rectangle sideRight = cell.getSideRight();
                 verticalSides[i + 1][j] = sideRight;
 
-                Rectangle sideDown = cell.getSideDown();
+                final Rectangle sideDown = cell.getSideDown();
                 horizontalSides[i][j + 1] = sideDown;
 
                 // We are in the first column and so we need to grab the left sides too.
                 if (i == 0) {
-                    Rectangle sideLeft = cell.getSideLeft();
+                    final Rectangle sideLeft = cell.getSideLeft();
                     verticalSides[i][j] = sideLeft;
                 }
 
                 // We are in the first row and so we need to grab the up sides too.
                 if (j == 0) {
-                    Rectangle sideUp = cell.getSideUp();
+                    final Rectangle sideUp = cell.getSideUp();
                     horizontalSides[i][j] = sideUp;
                 }
             }
         }
 
-        for (Rectangle[] sides : horizontalSides) {
-            for (Rectangle side : sides) {
+        for (final Rectangle[] sides : horizontalSides) {
+            for (final Rectangle side : sides) {
                 if (side != null) {
                     group.getChildren().add(side);
                 }
             }
         }
-        for (Rectangle[] sides : verticalSides) {
-            for (Rectangle side : sides) {
+        for (final Rectangle[] sides : verticalSides) {
+            for (final Rectangle side : sides) {
                 if (side != null) {
                     group.getChildren().add(side);
                 }
@@ -152,21 +152,21 @@ class Maze {
     // collisions against those.
     // This assumes that the object can only touch max two horizontal and two vertical sides maximum at once.
     // We do not return early if a collision is detected because it is possible for multiple collisions to occur.
-    protected void handleCollision(CollisionHandler obj) {
-        Point2D objCenter = obj.getCenter();
+    void handleCollision(final CollisionHandler obj) {
+        final Point2D objCenter = obj.getCenter();
         // Coordinates if the units were cells.
-        double cellX = objCenter.getX() / Cell.LENGTH;
-        double cellY = objCenter.getY() / Cell.LENGTH;
+        final double cellX = objCenter.getX() / Cell.LENGTH;
+        final double cellY = objCenter.getY() / Cell.LENGTH;
 
         // Closest column.
         int column = (int) Math.round(cellX);
         // Closest row.
         int row = (int) Math.round(cellY);
 
-        ArrayList<Rectangle> sides = new ArrayList<>(2);
+        final ArrayList<Rectangle> sides = new ArrayList<>(2);
 
         if (column < COLUMNS) {
-            Rectangle side = horizontalSides[column][row];
+            final Rectangle side = horizontalSides[column][row];
             if (side != null) {
                 sides.add(side);
             }
@@ -175,7 +175,7 @@ class Maze {
         // Let's try the horizontal side in the previous column.
         column--;
         if (column >= 0) {
-            Rectangle side = horizontalSides[column][row];
+            final Rectangle side = horizontalSides[column][row];
             if (side != null) {
                 sides.add(side);
             }
@@ -183,7 +183,7 @@ class Maze {
         column++;
 
         if (row < ROWS) {
-            Rectangle side = verticalSides[column][row];
+            final Rectangle side = verticalSides[column][row];
             if (side != null) {
                 sides.add(side);
             }
@@ -192,7 +192,7 @@ class Maze {
         // Let's try the vertical side in the previous row.
         row--;
         if (row >= 0) {
-            Rectangle side = verticalSides[column][row];
+            final Rectangle side = verticalSides[column][row];
             if (side != null) {
                 sides.add(side);
             }
@@ -204,7 +204,7 @@ class Maze {
 
     // The interface implemented by classes that the maze can detect collisions for.
     // Certain assumptions about the class are made. See the handleCollision method.
-    protected interface CollisionHandler {
+    interface CollisionHandler {
         Point2D getCenter();
 
         void handleCollision(ArrayList<Rectangle> sides);

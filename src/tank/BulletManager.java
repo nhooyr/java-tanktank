@@ -14,29 +14,29 @@ class BulletManager {
     private final Group group = new Group();
     private final Maze maze;
 
-    protected boolean lock;
+    boolean lock;
 
-    protected BulletManager(Maze maze) {
+    BulletManager(final Maze maze) {
         this.maze = maze;
     }
 
-    protected Node getNode() {
+    Node getNode() {
         return group;
     }
 
-    protected void addBullet(Point2D launchPoint, double theta, long nanos) {
+    void addBullet(final Point2D launchPoint, final double theta, final long nanos) {
         if (lock || bullets.size() >= MAX_BULLETS) {
             return;
         }
-        Bullet bullet = new Bullet(launchPoint, theta, nanos);
+        final Bullet bullet = new Bullet(launchPoint, theta, nanos);
         group.getChildren().add(bullet.getShape());
         bullets.add(bullet);
     }
 
-    protected void update(long nanos) {
-        Iterator<Bullet> it = bullets.iterator();
+    void update(final long nanos) {
+        final Iterator<Bullet> it = bullets.iterator();
         while (it.hasNext()) {
-            Bullet bullet = it.next();
+            final Bullet bullet = it.next();
             if (nanos > bullet.getExpiry()) {
                 it.remove();
                 group.getChildren().remove(bullet.getShape());
@@ -46,12 +46,12 @@ class BulletManager {
         }
     }
 
-    protected void handleCollisions() {
-        bullets.forEach(bullet -> maze.handleCollision(bullet));
+    void handleCollisions() {
+        bullets.forEach(maze::handleCollision);
     }
 
-    protected boolean isDeadTank(Tank tank) {
-        for (Bullet bullet : bullets) {
+    boolean isDeadTank(final Tank tank) {
+        for (final Bullet bullet : bullets) {
             if (tank.checkCollision(bullet.getShape())) {
                 return true;
             }
@@ -59,7 +59,7 @@ class BulletManager {
         return false;
     }
 
-    protected boolean isReloading() {
+    boolean isReloading() {
         return bullets.size() == MAX_BULLETS;
     }
 }

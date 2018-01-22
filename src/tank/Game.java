@@ -15,12 +15,12 @@ import javafx.stage.Stage;
 import java.util.Optional;
 
 // All methods that will be called from JavaFX onto user code run on a
-// single thread so no synchronization across anything is necessary.
+// single thread so no synchronization is necessary.
 // https://docs.oracle.com/javase/8/javafx/get-started-tutorial/jfx-architecture.htm
 class Game {
-    private Maze maze = new Maze();
-    private Tank tank1 = new Tank("blue", Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.keyCodeOpHashMap1, 0);
-    private Tank tank2 = new Tank("pink", Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.keyCodeOpHashMap2, Math.PI);
+    private final Maze maze = new Maze();
+    private final Tank tank1 = new Tank("blue", Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.keyCodeOpHashMap1, 0);
+    private final Tank tank2 = new Tank("pink", Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.keyCodeOpHashMap2, Math.PI);
 
     private final Stage stage;
 
@@ -31,10 +31,22 @@ class Game {
     private final static double WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
     private final static double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
 
-    protected Game(Stage stage) {
+    private final static ButtonType restartButtonType = new ButtonType("RESTART", ButtonBar.ButtonData.NEXT_FORWARD);
+    // This is unfortunate but javafx sucks. One of the buttons need to be a cancel button otherwise you cant X the dialog...
+    // I'd rather not add a third button so this is how its going to work unfortunately. Worse part is that it treats
+    // closing the window as clicking the cancel button, which is certainly not necessarily the case. Maybe this is a misuse
+    // of alerts but whatever.
+    private final static ButtonType mainMenuButtonType = new ButtonType("MAIN MENU", ButtonBar.ButtonData.NO);
+
+    private final FPSMeter fpsMeter = new FPSMeter();
+
+    private AnimationTimer timer;
+
+
+    Game(final Stage stage) {
         this.stage = stage;
-        Group root = new Group();
-        Scene scene = new Scene(root, WIDTH, HEIGHT);
+        final Group root = new Group();
+        final Scene scene = new Scene(root, WIDTH, HEIGHT);
 
         root.getChildren().addAll(
                 maze.getNode(),
@@ -51,26 +63,16 @@ class Game {
         stage.centerOnScreen();
     }
 
-    private AnimationTimer timer;
-
-    protected void start() {
-        Game g = this;
+    void start() {
+        final Game g = this;
         timer = new AnimationTimer() {
             @Override
-            public void handle(long now) {
+            public void handle(final long now) {
                 g.handle(now);
             }
         };
         timer.start();
     }
-
-    private final static ButtonType restartButtonType = new ButtonType("RESTART", ButtonBar.ButtonData.NEXT_FORWARD);
-    // This is unfortunate but javafx sucks. One of the buttons need to be a cancel button otherwise you cant X the dialog...
-    // I'd rather not add a third button so this is how its going to work unfortunately. Worse part is that it treats
-    // closing the window as clicking the cancel button, which is certainly not necessarily the case. Maybe this is a misuse
-    // of alerts but whatever.
-    private final static ButtonType mainMenuButtonType = new ButtonType("MAIN MENU", ButtonBar.ButtonData.NO);
-    private final FPSMeter fpsMeter = new FPSMeter();
 
     // The game loop runs on an AnimationTimer which calls handle() about every 1/60 of a second.
     // Rendering and updating are handled separately in JavaFX so this is the standard design of a game loop.
@@ -79,13 +81,13 @@ class Game {
     // There are many other articles recommending this design.
     // Though, I am not positive it works the way I think it does and the docs are not very clear. So whatever,
     // no big deal.
-    private void handle(long nanos) {
+    private void handle(final long nanos) {
         fpsMeter.handle(nanos);
 
         if (isTank1Dead() || isTank2Dead()) {
             timer.stop();
 
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            final Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Tank Tank");
             alert.setHeaderText("Game Over!");
 
@@ -121,7 +123,7 @@ class Game {
 
                 // This is optional because the alert can be abnormally closed and return no result.
                 // See https://docs.oracle.com/javase/8/javafx/api/javafx/scene/control/Dialog.html
-                Optional<ButtonType> buttonType = alert.showAndWait();
+                final Optional<ButtonType> buttonType = alert.showAndWait();
 
                 // If the alert had no result, then we default to showing the main menu.
                 if (!buttonType.isPresent() || buttonType.get() == mainMenuButtonType) {
@@ -129,14 +131,14 @@ class Game {
                     return;
                 }
 
-                Game game = new Game(stage);
+                final Game game = new Game(stage);
                 game.start();
             });
             return;
         }
 
         // TODO in future use a single bullet manager and a separate bullet limiter.
-        // TODO in the future another possibility would be to allow the nondead tank to move. Not a big deal right now.
+        // TODO in the future another possibility would be to allow the winning tank to move. Not a big deal right now.
         if (tank1.getBulletManager().isDeadTank(tank1) || tank2.getBulletManager().isDeadTank(tank1)) {
             tank1.kill();
         }
@@ -152,21 +154,21 @@ class Game {
         tank2.handle(nanos);
     }
 
-    private void handlePressed(KeyEvent e) {
+    private void handlePressed(final KeyEvent e) {
         tank1.handlePressed(e.getCode());
         tank2.handlePressed(e.getCode());
     }
 
-    private void handleReleased(KeyEvent e) {
+    private void handleReleased(final KeyEvent e) {
         tank1.handleReleased(e.getCode());
         tank2.handleReleased(e.getCode());
     }
 
-    protected boolean isTank1Dead() {
+    private boolean isTank1Dead() {
         return tank1.isDead();
     }
 
-    protected boolean isTank2Dead() {
+    private boolean isTank2Dead() {
         return tank2.isDead();
     }
 }

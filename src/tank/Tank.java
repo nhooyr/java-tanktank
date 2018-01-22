@@ -15,58 +15,56 @@ import java.util.Random;
 
 // TODO when spawning always make tanks face away from each other.
 class Tank implements Maze.CollisionHandler {
-    protected final static int VELOCITY = 3; // exported for use in Bullet.
+    final static int VELOCITY = 3; // exported for use in Bullet.
     private final static double TURNING_ANGLE = Math.PI / 36;
 
     private final static double BODY_WIDTH = 40;
-    protected final static double BODY_HEIGHT = 30; // exported for use in Maze.
+    final static double BODY_HEIGHT = 30; // exported for use in Maze.
 
     private final static double HEAD_WIDTH = BODY_WIDTH / 2;
-    protected final static double HEAD_HEIGHT = BODY_HEIGHT / 4; // exported for use in Bullet.
+    final static double HEAD_HEIGHT = BODY_HEIGHT / 4; // exported for use in Bullet.
 
     private final Color HEAD_COLOR;
-    private final Color BODY_COLOR;
-    private final Color OUT_OF_AMNO_HEAD_COLOR;
+    private final Color OUT_OF_AMMO_HEAD_COLOR;
     private final static Color DEAD_COLOR = Color.BLACK;
     private final String COLOR_NAME;
 
-    private Polygon headPolygon = new Polygon();
-    private Polygon bodyPolygon = new Polygon();
-    private Rectangle head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT);
-    private Rectangle body = new Rectangle(BODY_WIDTH, BODY_HEIGHT);
+    private final Polygon headPolygon = new Polygon();
+    private final Polygon bodyPolygon = new Polygon();
+    private final Rectangle head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT);
+    private final Rectangle body = new Rectangle(BODY_WIDTH, BODY_HEIGHT);
     // Middle of body.
     private Point2D pivot = new Point2D(body.getWidth() / 2, body.getHeight() / 2);
     private double theta;
     private Point2D decomposedVelocity;
     private Point2D negativeDecomposedVelocity;
-    private BulletManager bulletManager;
-    private Maze maze;
+    private final BulletManager bulletManager;
+    private final Maze maze;
 
-    protected Tank(String colorName, Color bodyColor, Color headColor, Color outOfAmnoColor, Maze maze, HashMap<KeyCode, Op> keyCodeOpHashMap, double initialAngle) {
+    Tank(final String colorName, final Color bodyColor, final Color headColor, Color outOfAmmoColor, final Maze maze, final HashMap<KeyCode, Op> keyCodeOpHashMap, final double initialAngle) {
         this.maze = maze;
         this.keyCodeOpHashMap = keyCodeOpHashMap;
         this.COLOR_NAME = colorName;
 
         bulletManager = new BulletManager(maze);
 
-        Point2D headPoint = new Point2D(
+        final Point2D headPoint = new Point2D(
                 body.getWidth() - head.getWidth() / 2, // half of head sticks out.
                 body.getHeight() / 2 - head.getHeight() / 2 // head is in the vertical middle of tank.
         );
         head.moveTo(headPoint);
 
-        this.BODY_COLOR = bodyColor;
         this.HEAD_COLOR = headColor;
-        this.OUT_OF_AMNO_HEAD_COLOR = outOfAmnoColor;
+        this.OUT_OF_AMMO_HEAD_COLOR = outOfAmmoColor;
         headPolygon.setFill(HEAD_COLOR);
-        bodyPolygon.setFill(BODY_COLOR);
+        bodyPolygon.setFill(bodyColor);
 
         rotate(initialAngle);
 
         // Move to the middle of some random cell.
-        Random rand = new Random();
-        int col = rand.nextInt(Maze.COLUMNS);
-        int row = rand.nextInt(Maze.ROWS);
+        final Random rand = new Random();
+        final int col = rand.nextInt(Maze.COLUMNS);
+        final int row = rand.nextInt(Maze.ROWS);
         moveBy(new Point2D(col * Cell.LENGTH, row * Cell.LENGTH));
         moveBy(new Point2D(Maze.THICKNESS, Maze.THICKNESS));
         moveBy(new Point2D((Cell.LENGTH - Maze.THICKNESS) / 2, (Cell.LENGTH - Maze.THICKNESS) / 2));
@@ -75,23 +73,23 @@ class Tank implements Maze.CollisionHandler {
         syncPolygons();
     }
 
-    protected BulletManager getBulletManager() {
+    BulletManager getBulletManager() {
         return bulletManager;
     }
 
-    protected Node getNode() {
+    Node getNode() {
         // head added after so that you can see it in front.
         return new Group(bodyPolygon, headPolygon);
     }
 
-    protected Node getNodeFacingRight() {
-        Polygon headPolygonCopy = new Polygon();
-        Polygon bodyPolygonCopy = new Polygon();
+    Node getNodeFacingRight() {
+        final Polygon headPolygonCopy = new Polygon();
+        final Polygon bodyPolygonCopy = new Polygon();
 
-        Rectangle headCopy = new Rectangle(head);
-        Rectangle bodyCopy = new Rectangle(body);
+        final Rectangle headCopy = new Rectangle(head);
+        final Rectangle bodyCopy = new Rectangle(body);
 
-        // TODO should the tank be pointing out or into the alert❓¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ need more thought.
+        // TODO should the tank be pointing out or into the alert ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ need more thought.
         headCopy.rotate(pivot, -theta+Math.PI);
         bodyCopy.rotate(pivot, -theta+Math.PI);
 
@@ -105,17 +103,17 @@ class Tank implements Maze.CollisionHandler {
     }
 
     // The direction of angles is reversed because the coordinate system is reversed.
-    protected void right() {
+    private void right() {
         lastMovementOp = Op.RIGHT;
         rotate(TURNING_ANGLE);
     }
 
-    protected void left() {
+    private void left() {
         lastMovementOp = Op.LEFT;
         rotate(-TURNING_ANGLE);
     }
 
-    private void rotate(double theta) {
+    private void rotate(final double theta) {
         this.theta += theta;
         body.rotate(pivot, theta);
         head.rotate(pivot, theta);
@@ -129,28 +127,28 @@ class Tank implements Maze.CollisionHandler {
         bodyPolygon.getPoints().setAll(body.getDoubles());
     }
 
-    protected void forward() {
+    private void forward() {
         lastMovementOp = Op.FORWARD;
         moveBy(decomposedVelocity);
     }
 
-    protected void back() {
+    private void back() {
         lastMovementOp = Op.REVERSE;
         moveBy(negativeDecomposedVelocity);
     }
 
-    private void moveBy(Point2D point) {
+    private void moveBy(final Point2D point) {
         head.moveBy(point);
         body.moveBy(point);
         pivot = pivot.add(point);
         syncPolygons();
     }
 
-    protected Point2D getBulletLaunchPoint() {
+    private Point2D getBulletLaunchPoint() {
         return head.getMidRight();
     }
 
-    protected double getTheta() {
+    private double getTheta() {
         return theta;
     }
 
@@ -158,12 +156,12 @@ class Tank implements Maze.CollisionHandler {
         return pivot;
     }
 
-    protected boolean checkCollision(Shape shape) {
+    boolean checkCollision(final Shape shape) {
         return Physics.checkCollision(headPolygon, shape) || Physics.checkCollision(bodyPolygon, shape);
     }
 
     // TODO better edge mechanics, e.g. instead of stopping, we lower velocity/slide.
-    public void handleCollision(ArrayList<javafx.scene.shape.Rectangle> sides) {
+    public void handleCollision(final ArrayList<javafx.scene.shape.Rectangle> sides) {
         for (int i = 0; i < sides.size(); i++) {
             if (!checkCollision(sides.get(i))) {
                 // The tank does not intersect the side.
@@ -184,28 +182,21 @@ class Tank implements Maze.CollisionHandler {
         switch (lastMovementOp) {
             case FORWARD:
                 decomposedVelocity = Physics.decomposeVector(-1, theta);
-                reverseOp = () -> {
-                    tank.moveBy(decomposedVelocity);
-                };
+                reverseOp = () -> tank.moveBy(decomposedVelocity);
                 break;
             case REVERSE:
                 decomposedVelocity = Physics.decomposeVector(1, theta);
-                reverseOp = () -> {
-                    tank.moveBy(decomposedVelocity);
-                };
+                reverseOp = () -> tank.moveBy(decomposedVelocity);
                 break;
             case RIGHT:
-                reverseOp = () -> {
-                    tank.rotate(-TURNING_ANGLE / 12);
-                };
+                reverseOp = () -> tank.rotate(-TURNING_ANGLE / 12);;
                 break;
             case LEFT:
-                reverseOp = () -> {
-                    tank.rotate(TURNING_ANGLE / 12);
-                };
+                reverseOp = () -> tank.rotate(TURNING_ANGLE / 12);
                 break;
         }
         do {
+            assert reverseOp != null;
             reverseOp.run();
             syncPolygons();
 
@@ -228,23 +219,23 @@ class Tank implements Maze.CollisionHandler {
         FIRE,
     }
 
-    private HashMap<KeyCode, Op> keyCodeOpHashMap;
+    private final HashMap<KeyCode, Op> keyCodeOpHashMap;
     // keys pressed since the last frame.
-    private HashSet<Op> pressedOps = new HashSet<>();
+    private final HashSet<Op> pressedOps = new HashSet<>();
 
-    protected void handlePressed(KeyCode keyCode) {
+    void handlePressed(final KeyCode keyCode) {
         pressedOps.add(keyCodeOpHashMap.get(keyCode));
     }
 
-    protected void handleReleased(KeyCode keyCode) {
-        Op op = keyCodeOpHashMap.get(keyCode);
+    void handleReleased(final KeyCode keyCode) {
+        final Op op = keyCodeOpHashMap.get(keyCode);
         if (op == Op.FIRE) {
             bulletManager.lock = false;
         }
         pressedOps.remove(op);
     }
 
-    protected void handle(long nanos) {
+    void handle(final long nanos) {
         bulletManager.update(nanos);
         if (pressedOps.contains(Op.FIRE)) {
             bulletManager.addBullet(
@@ -257,7 +248,7 @@ class Tank implements Maze.CollisionHandler {
         bulletManager.handleCollisions();
 
         if (bulletManager.isReloading()) {
-            headPolygon.setFill(OUT_OF_AMNO_HEAD_COLOR);
+            headPolygon.setFill(OUT_OF_AMMO_HEAD_COLOR);
         } else {
             headPolygon.setFill(HEAD_COLOR);
         }
@@ -279,7 +270,7 @@ class Tank implements Maze.CollisionHandler {
         maze.handleCollision(this);
     }
 
-    protected static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();
+    static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();
 
     static {
         keyCodeOpHashMap1.put(KeyCode.UP, Op.FORWARD);
@@ -290,7 +281,7 @@ class Tank implements Maze.CollisionHandler {
     }
 
 
-    protected static final HashMap<KeyCode, Op> keyCodeOpHashMap2 = new HashMap<>();
+    static final HashMap<KeyCode, Op> keyCodeOpHashMap2 = new HashMap<>();
 
     static {
         keyCodeOpHashMap2.put(KeyCode.W, Op.FORWARD);
@@ -303,18 +294,18 @@ class Tank implements Maze.CollisionHandler {
 
     private boolean dead;
 
-    protected void kill() {
+    void kill() {
         dead = true;
         headPolygon.setFill(DEAD_COLOR);
         bodyPolygon.setFill(DEAD_COLOR);
     }
 
 
-    protected boolean isDead() {
+    boolean isDead() {
         return dead;
     }
 
-    protected String getColorName() {
+    String getColorName() {
         return COLOR_NAME;
     }
 }

@@ -3,11 +3,11 @@ package tank;
 import java.util.concurrent.TimeUnit;
 
 class FPSMeter {
-    long framesInSecond = 0;
-    long nextSecond = 0;
-    final static long SECOND = TimeUnit.SECONDS.toNanos(1);
+    private long framesInSecond = 0;
+    private long nextSecond = 0;
+    private final static long SECOND = TimeUnit.SECONDS.toNanos(1);
 
-    protected void handle(long nanos) {
+    void handle(final long nanos) {
         framesInSecond++;
         if (nextSecond == 0) {
             nextSecond = nanos + SECOND;

@@ -6,55 +6,55 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 
 class Cell {
-    protected final static double LENGTH = 3.5 * Tank.BODY_HEIGHT;
+    final static double LENGTH = 3.5 * Tank.BODY_HEIGHT;
 
-    private int row;
-    private int column;
+    private final int row;
+    private final int column;
 
-    protected int getRow() {
+    int getRow() {
         return row;
     }
 
-    protected int getColumn() {
+    int getColumn() {
         return column;
     }
 
     // True means the side is opaque.
     // Protected so that the grid constructor can access.
-    private MutableBoolean up;
-    private MutableBoolean left;
-    private MutableBoolean right = new MutableBoolean();
-    private MutableBoolean down = new MutableBoolean();
+    private final MutableBoolean up;
+    private final MutableBoolean left;
+    private final MutableBoolean right = new MutableBoolean();
+    private final MutableBoolean down = new MutableBoolean();
 
-    public MutableBoolean getUp() {
+    MutableBoolean getUp() {
         return up;
     }
 
-    public MutableBoolean getLeft() {
+    MutableBoolean getLeft() {
         return left;
     }
 
-    public MutableBoolean getRight() {
+    MutableBoolean getRight() {
         return right;
     }
 
-    public MutableBoolean getDown() {
+    MutableBoolean getDown() {
         return down;
     }
 
 
-    private ArrayList<MutableBoolean> yummySides = new ArrayList<>();
+    private final ArrayList<MutableBoolean> yummySides = new ArrayList<>();
 
-    protected ArrayList<MutableBoolean> getYummySides() {
+    ArrayList<MutableBoolean> getYummySides() {
         return yummySides;
     }
 
-    private double x;
-    private double y;
+    private final double x;
+    private final double y;
 
     private static final Color COLOR = Color.BLACK;
 
-    protected Cell(int column, int row, MutableBoolean up, MutableBoolean left) {
+    Cell(final int column, final int row, final MutableBoolean up, final MutableBoolean left) {
         this.column = column;
         this.row = row;
         this.x = column * Cell.LENGTH;
@@ -88,7 +88,7 @@ class Cell {
         }
     }
 
-    protected boolean isYummy() {
+    boolean isYummy() {
         int yummyThreshold = 2;
         if (column == 0 ||
                 row == 0 ||
@@ -102,25 +102,25 @@ class Cell {
         return yummySides.size() > yummyThreshold;
     }
 
-    protected Rectangle getSideUp() {
+    Rectangle getSideUp() {
         return getSide(this.up, x, y, Cell.LENGTH, Maze.THICKNESS);
     }
 
-    protected Rectangle getSideLeft() {
+    Rectangle getSideLeft() {
         return getSide(this.left, x, y, Maze.THICKNESS, Cell.LENGTH);
     }
 
     // We add maze thickness to the length's in the down side and right side to prevent gaping squares from appearing
     // where a invisible side up or side left would be.
-    protected Rectangle getSideDown() {
+    Rectangle getSideDown() {
         return getSide(this.down, x, y + Cell.LENGTH, Cell.LENGTH + Maze.THICKNESS, Maze.THICKNESS);
     }
 
-    protected Rectangle getSideRight() {
+    Rectangle getSideRight() {
         return getSide(this.right, x + Cell.LENGTH, y, Maze.THICKNESS, Cell.LENGTH + Maze.THICKNESS);
     }
 
-    private Rectangle getSide(MutableBoolean visibility, double x, double y, double width, double height) {
+    private Rectangle getSide(final MutableBoolean visibility, final double x, final double y, final double width, final double height) {
         Rectangle rect = null;
         if (visibility.value) {
             rect = new Rectangle(x, y, width, height);
@@ -131,10 +131,10 @@ class Cell {
 
     static class MutableBoolean {
 
-        public MutableBoolean() {
+        MutableBoolean() {
             this.value = true;
         }
 
-        protected boolean value;
+        boolean value;
     }
 }
