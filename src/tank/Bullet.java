@@ -11,14 +11,13 @@ import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 class Bullet implements Maze.CollisionHandler {
+    static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
     private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
     private static final Paint COLOR = Color.RED;
-    static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
     private static final long DURATION = TimeUnit.SECONDS.toNanos(15);
-
-    private Point2D velocity;
     private final Circle circle;
     private final long expiry;
+    private Point2D velocity;
 
     Bullet(Point2D launchPoint, final double theta, final long nanos) {
         // We add velocity so the Tank does not instantly die from its own bullet.

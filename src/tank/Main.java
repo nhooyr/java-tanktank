@@ -8,6 +8,10 @@ import javafx.stage.Stage;
 // TODO write docs/cleanup
 public class Main extends Application {
 
+    public static void main(final String[] args) {
+        launch(args);
+    }
+
     @Override
     public void start(final Stage stage) throws Exception {
         stage.setResizable(false);
@@ -15,9 +19,5 @@ public class Main extends Application {
 
         MainMenu.display(stage);
         stage.show();
-    }
-
-    public static void main(final String[] args) {
-        launch(args);
     }
 }

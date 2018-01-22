@@ -3,18 +3,10 @@ package tank;
 import javafx.geometry.Point2D;
 
 class Rectangle {
+    private final double width;
+    private final double height;
     private Point2D[] points = new Point2D[4];
     private Point2D origin = Point2D.ZERO;
-    private double width;
-    private double height;
-
-    double getWidth() {
-        return width;
-    }
-
-    double getHeight() {
-        return height;
-    }
 
     Rectangle(final Rectangle rect) {
         this.points = rect.points.clone();
@@ -31,6 +23,14 @@ class Rectangle {
         points[1] = new Point2D(width, 0);
         points[2] = new Point2D(width, height);
         points[3] = new Point2D(0, height);
+    }
+
+    double getWidth() {
+        return width;
+    }
+
+    double getHeight() {
+        return height;
     }
 
     void moveBy(final Point2D p) {

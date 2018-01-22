@@ -9,19 +9,17 @@ import java.util.ArrayList;
 import java.util.Random;
 
 class Maze {
-    private final Group group = new Group();
-    private final Rectangle[][] horizontalSides = new Rectangle[COLUMNS][ROWS + 1];
-    private final Rectangle[][] verticalSides = new Rectangle[COLUMNS + 1][ROWS];
-
-    private final Cell[][] grid = new Cell[COLUMNS][ROWS];
-
     // These three are used in various places.
     // This is twice the bullet velocity to prevent the bullet from moving through any of the walls without a collision being detected.
     // Given the bullet velocity itself is defined to be greater than the tank velocity, this also ensures that the tank does not
     // punch through any walls without the collision being detected.
-    final static double THICKNESS = Bullet.VELOCITY * 2;
-    final static int ROWS = 8;
-    final static int COLUMNS = 10;
+    static final double THICKNESS = Bullet.VELOCITY * 2;
+    static final int ROWS = 8;
+    static final int COLUMNS = 10;
+    private final Group group = new Group();
+    private final Rectangle[][] horizontalSides = new Rectangle[COLUMNS][ROWS + 1];
+    private final Rectangle[][] verticalSides = new Rectangle[COLUMNS + 1][ROWS];
+    private final Cell[][] grid = new Cell[COLUMNS][ROWS];
 
     Maze() {
         makeGrid();

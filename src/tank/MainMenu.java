@@ -16,8 +16,8 @@ import java.net.URI;
 
 // TODO decorate the main menu with tanks and also use idiomatic javafx layouting instead of hard coding.
 class MainMenu {
-    private final static double WIDTH = 300;
-    private final static double HEIGHT = 200;
+    private static final double WIDTH = 300;
+    private static final double HEIGHT = 200;
 
     static void display(final Stage stage) {
         final Group root = new Group();

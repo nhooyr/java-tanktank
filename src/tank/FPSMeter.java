@@ -3,9 +3,9 @@ package tank;
 import java.util.concurrent.TimeUnit;
 
 class FPSMeter {
+    private static final long SECOND = TimeUnit.SECONDS.toNanos(1);
     private long framesInSecond = 0;
     private long nextSecond = 0;
-    private final static long SECOND = TimeUnit.SECONDS.toNanos(1);
 
     void handle(final long nanos) {
         framesInSecond++;

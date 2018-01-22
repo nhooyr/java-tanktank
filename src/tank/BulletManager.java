@@ -14,6 +14,8 @@ class BulletManager {
     private final Group group = new Group();
     private final Maze maze;
 
+    // lock prevents the manager from firing any more bullet. Used to wait for the bullet firing key to release before
+    // allowing another bullet to fire in Game.
     boolean lock;
 
     BulletManager(final Maze maze) {

@@ -15,33 +15,53 @@ import java.util.Random;
 
 // TODO when spawning always make tanks face away from each other.
 class Tank implements Maze.CollisionHandler {
-    final static int VELOCITY = 3; // exported for use in Bullet.
-    private final static double TURNING_ANGLE = Math.PI / 36;
+    static final int VELOCITY = 3; // exported for use in Bullet.
+    static final double BODY_HEIGHT = 30; // exported for use in Maze.
+    static final double HEAD_HEIGHT = BODY_HEIGHT / 4; // exported for use in Bullet.
+    static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();
+    static final HashMap<KeyCode, Op> keyCodeOpHashMap2 = new HashMap<>();
+    private static final double TURNING_ANGLE = Math.PI / 36;
+    private static final double BODY_WIDTH = 40;
+    private static final double HEAD_WIDTH = BODY_WIDTH / 2;
+    private static final Color DEAD_COLOR = Color.BLACK;
 
-    private final static double BODY_WIDTH = 40;
-    final static double BODY_HEIGHT = 30; // exported for use in Maze.
+    static {
+        keyCodeOpHashMap1.put(KeyCode.UP, Op.FORWARD);
+        keyCodeOpHashMap1.put(KeyCode.RIGHT, Op.RIGHT);
+        keyCodeOpHashMap1.put(KeyCode.DOWN, Op.REVERSE);
+        keyCodeOpHashMap1.put(KeyCode.LEFT, Op.LEFT);
+        keyCodeOpHashMap1.put(KeyCode.PERIOD, Op.FIRE);
+    }
 
-    private final static double HEAD_WIDTH = BODY_WIDTH / 2;
-    final static double HEAD_HEIGHT = BODY_HEIGHT / 4; // exported for use in Bullet.
+    static {
+        keyCodeOpHashMap2.put(KeyCode.W, Op.FORWARD);
+        keyCodeOpHashMap2.put(KeyCode.D, Op.RIGHT);
+        keyCodeOpHashMap2.put(KeyCode.S, Op.REVERSE);
+        keyCodeOpHashMap2.put(KeyCode.A, Op.LEFT);
+        keyCodeOpHashMap2.put(KeyCode.V, Op.FIRE);
+    }
 
     private final Color HEAD_COLOR;
     private final Color OUT_OF_AMMO_HEAD_COLOR;
-    private final static Color DEAD_COLOR = Color.BLACK;
     private final String COLOR_NAME;
-
     private final Polygon headPolygon = new Polygon();
     private final Polygon bodyPolygon = new Polygon();
     private final Rectangle head = new Rectangle(HEAD_WIDTH, HEAD_HEIGHT);
     private final Rectangle body = new Rectangle(BODY_WIDTH, BODY_HEIGHT);
+    private final BulletManager bulletManager;
+    private final Maze maze;
+    private final HashMap<KeyCode, Op> keyCodeOpHashMap;
+    // keys pressed since the last frame.
+    private final HashSet<Op> pressedOps = new HashSet<>();
     // Middle of body.
     private Point2D pivot = new Point2D(body.getWidth() / 2, body.getHeight() / 2);
     private double theta;
     private Point2D decomposedVelocity;
     private Point2D negativeDecomposedVelocity;
-    private final BulletManager bulletManager;
-    private final Maze maze;
+    private Op lastMovementOp;
+    private boolean dead;
 
-    Tank(final String colorName, final Color bodyColor, final Color headColor, Color outOfAmmoColor, final Maze maze, final HashMap<KeyCode, Op> keyCodeOpHashMap, final double initialAngle) {
+    Tank(final String colorName, final Color bodyColor, final Color headColor, final Color outOfAmmoColor, final Maze maze, final HashMap<KeyCode, Op> keyCodeOpHashMap, final double initialAngle) {
         this.maze = maze;
         this.keyCodeOpHashMap = keyCodeOpHashMap;
         this.COLOR_NAME = colorName;
@@ -90,8 +110,8 @@ class Tank implements Maze.CollisionHandler {
         final Rectangle bodyCopy = new Rectangle(body);
 
         // TODO should the tank be pointing out or into the alert ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ need more thought.
-        headCopy.rotate(pivot, -theta+Math.PI);
-        bodyCopy.rotate(pivot, -theta+Math.PI);
+        headCopy.rotate(pivot, -theta + Math.PI);
+        bodyCopy.rotate(pivot, -theta + Math.PI);
 
         headPolygonCopy.getPoints().setAll(headCopy.getDoubles());
         bodyPolygonCopy.getPoints().setAll(bodyCopy.getDoubles());
@@ -189,7 +209,8 @@ class Tank implements Maze.CollisionHandler {
                 reverseOp = () -> tank.moveBy(decomposedVelocity);
                 break;
             case RIGHT:
-                reverseOp = () -> tank.rotate(-TURNING_ANGLE / 12);;
+                reverseOp = () -> tank.rotate(-TURNING_ANGLE / 12);
+                ;
                 break;
             case LEFT:
                 reverseOp = () -> tank.rotate(TURNING_ANGLE / 12);
@@ -208,20 +229,6 @@ class Tank implements Maze.CollisionHandler {
             }
         } while (sides.size() > 0);
     }
-
-    private Op lastMovementOp;
-
-    private enum Op {
-        FORWARD,
-        RIGHT,
-        LEFT,
-        REVERSE,
-        FIRE,
-    }
-
-    private final HashMap<KeyCode, Op> keyCodeOpHashMap;
-    // keys pressed since the last frame.
-    private final HashSet<Op> pressedOps = new HashSet<>();
 
     void handlePressed(final KeyCode keyCode) {
         pressedOps.add(keyCodeOpHashMap.get(keyCode));
@@ -270,36 +277,11 @@ class Tank implements Maze.CollisionHandler {
         maze.handleCollision(this);
     }
 
-    static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();
-
-    static {
-        keyCodeOpHashMap1.put(KeyCode.UP, Op.FORWARD);
-        keyCodeOpHashMap1.put(KeyCode.RIGHT, Op.RIGHT);
-        keyCodeOpHashMap1.put(KeyCode.DOWN, Op.REVERSE);
-        keyCodeOpHashMap1.put(KeyCode.LEFT, Op.LEFT);
-        keyCodeOpHashMap1.put(KeyCode.PERIOD, Op.FIRE);
-    }
-
-
-    static final HashMap<KeyCode, Op> keyCodeOpHashMap2 = new HashMap<>();
-
-    static {
-        keyCodeOpHashMap2.put(KeyCode.W, Op.FORWARD);
-        keyCodeOpHashMap2.put(KeyCode.D, Op.RIGHT);
-        keyCodeOpHashMap2.put(KeyCode.S, Op.REVERSE);
-        keyCodeOpHashMap2.put(KeyCode.A, Op.LEFT);
-        keyCodeOpHashMap2.put(KeyCode.V, Op.FIRE);
-    }
-
-
-    private boolean dead;
-
     void kill() {
         dead = true;
         headPolygon.setFill(DEAD_COLOR);
         bodyPolygon.setFill(DEAD_COLOR);
     }
-
 
     boolean isDead() {
         return dead;
@@ -307,5 +289,13 @@ class Tank implements Maze.CollisionHandler {
 
     String getColorName() {
         return COLOR_NAME;
+    }
+
+    private enum Op {
+        FORWARD,
+        RIGHT,
+        LEFT,
+        REVERSE,
+        FIRE,
     }
 }

@@ -6,10 +6,31 @@ import javafx.scene.shape.Rectangle;
 import java.util.ArrayList;
 
 class Cell {
-    final static double LENGTH = 3.5 * Tank.BODY_HEIGHT;
-
+    static final double LENGTH = 3.5 * Tank.BODY_HEIGHT;
+    private static final Color COLOR = Color.BLACK;
     private final int row;
     private final int column;
+    private final ArrayList<MutableBoolean> yummySides = new ArrayList<>();
+    private final double x;
+    private final double y;
+    // True means the side is opaque.
+    // Protected so that the grid constructor can access.
+    private final MutableBoolean up;
+    private final MutableBoolean left;
+    private final MutableBoolean right = new MutableBoolean();
+    private final MutableBoolean down = new MutableBoolean();
+
+    Cell(final int column, final int row, final MutableBoolean up, final MutableBoolean left) {
+        this.column = column;
+        this.row = row;
+        this.x = column * Cell.LENGTH;
+        this.y = row * Cell.LENGTH;
+
+        this.up = up;
+        this.left = left;
+
+        makeYummySides();
+    }
 
     int getRow() {
         return row;
@@ -18,13 +39,6 @@ class Cell {
     int getColumn() {
         return column;
     }
-
-    // True means the side is opaque.
-    // Protected so that the grid constructor can access.
-    private final MutableBoolean up;
-    private final MutableBoolean left;
-    private final MutableBoolean right = new MutableBoolean();
-    private final MutableBoolean down = new MutableBoolean();
 
     MutableBoolean getUp() {
         return up;
@@ -42,28 +56,8 @@ class Cell {
         return down;
     }
 
-
-    private final ArrayList<MutableBoolean> yummySides = new ArrayList<>();
-
     ArrayList<MutableBoolean> getYummySides() {
         return yummySides;
-    }
-
-    private final double x;
-    private final double y;
-
-    private static final Color COLOR = Color.BLACK;
-
-    Cell(final int column, final int row, final MutableBoolean up, final MutableBoolean left) {
-        this.column = column;
-        this.row = row;
-        this.x = column * Cell.LENGTH;
-        this.y = row * Cell.LENGTH;
-
-        this.up = up;
-        this.left = left;
-
-        makeYummySides();
     }
 
     private void makeYummySides() {
@@ -131,10 +125,10 @@ class Cell {
 
     static class MutableBoolean {
 
+        boolean value;
+
         MutableBoolean() {
             this.value = true;
         }
-
-        boolean value;
     }
 }
