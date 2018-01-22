@@ -1,6 +1,7 @@
 package tank;
 
 import javafx.application.Application;
+import javafx.scene.control.TextInputDialog;
 import javafx.stage.Stage;
 
 

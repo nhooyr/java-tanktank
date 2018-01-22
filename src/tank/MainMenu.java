@@ -30,8 +30,8 @@ class MainMenu {
         title.setLayoutX(WIDTH / 2 - titleBounds.getWidth() / 2);
         title.setLayoutY(titleBounds.getHeight() + 10);
 
-
         Button playButton = new Button("play");
+        playButton.setDefaultButton(true);
         playButton.setPrefWidth(60);
         playButton.setOnAction(event -> {
             Game game = new Game(stage);
@@ -44,8 +44,7 @@ class MainMenu {
             try {
                 Desktop.getDesktop().browse(new URI("https://github.com/nhooyr/java-tanktank"));
             } catch (Exception e) {
-                e.printStackTrace()
-                ;
+                e.printStackTrace();
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Tank Tank");
                 alert.setHeaderText("Help link could not be opened");

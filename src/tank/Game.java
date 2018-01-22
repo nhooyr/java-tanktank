@@ -5,10 +5,12 @@ import javafx.application.Platform;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
+
+import java.util.Optional;
 
 // All methods that will be called from JavaFX onto user code run on a
 // single thread so no synchronization across anything is necessary.
@@ -107,8 +109,23 @@ class Game {
             // Must run later because we cannot call alert.showAndWait() during animation processing. See its docs.
             // And we might want animation to continue down the road anyhow.
             Platform.runLater(() -> {
-                alert.showAndWait();
-                MainMenu.display(stage);
+                ButtonType restartButtonType = new ButtonType("RESTART", ButtonBar.ButtonData.OK_DONE);
+                alert.getButtonTypes().add(restartButtonType);
+
+                Button okButton = (Button) alert.getDialogPane().lookupButton(ButtonType.OK);
+                okButton.setDefaultButton(false);
+                okButton.setText("MAIN MENU");
+
+                Button restartButton = (Button) alert.getDialogPane().lookupButton(restartButtonType);
+                restartButton.setDefaultButton(true);
+
+                Optional<ButtonType> buttonType = alert.showAndWait();
+                if (buttonType.get() == ButtonType.OK) {
+                    MainMenu.display(stage);
+                } else {
+                    Game game = new Game(stage);
+                    game.start();
+                }
             });
             return;
         }
