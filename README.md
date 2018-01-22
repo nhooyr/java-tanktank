@@ -12,10 +12,10 @@ winner. If both tanks die at once, then the game is declared a tie.
 
 ## Controls
 
-| Action      | Blue Tank Key | Pink Tank key |
+| Action      | Pink Tank key | Blue Tank Key |
 | ----------- | ------------- | ------------- |
-| Forward     | ↑             | W             |
-| Reverse     | ↓             | S             |
-| Right       | →             | D             |
-| Left        | ←             | A             |
-| Fire Bullet | .             | v             |
+| Forward     | W             | ↑             |
+| Reverse     | S             | ↓             |
+| Right       | D             | →             |
+| Left        | A             | ←             |
+| Fire Bullet | v             | .             |
