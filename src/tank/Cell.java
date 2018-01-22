@@ -1,7 +1,5 @@
 package tank;
 
-import javafx.scene.paint.Color;
-
 import java.util.ArrayList;
 
 // Cell represents a cell within the Maze.

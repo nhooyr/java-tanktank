@@ -10,9 +10,9 @@ import javafx.scene.shape.Polygon;
 class Rectangle {
     private final double width;
     private final double height;
+    private final Polygon polygon = new Polygon();
     private Point2D[] points = new Point2D[4];
     private Point2D origin = Point2D.ZERO;
-    private Polygon polygon = new Polygon();
 
     // Cloning constructor used for cloning the winning Tank to place into the alert when a game is over.
     Rectangle(final Rectangle rect) {
