@@ -10,9 +10,9 @@ import java.util.Iterator;
 class BulletManager {
     private static final int MAX_BULLETS = 5;
 
-    private ArrayList<Bullet> bullets = new ArrayList<>(MAX_BULLETS);
-    private Group group = new Group();
-    private Maze maze;
+    private final ArrayList<Bullet> bullets = new ArrayList<>(MAX_BULLETS);
+    private final Group group = new Group();
+    private final Maze maze;
 
     protected boolean lock;
 
@@ -59,7 +59,7 @@ class BulletManager {
         return false;
     }
 
-    protected boolean isAmnoEmpty() {
+    protected boolean isReloading() {
         return bullets.size() == MAX_BULLETS;
     }
 }

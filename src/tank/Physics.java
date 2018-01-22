@@ -33,6 +33,7 @@ class Physics {
         // https://stackoverflow.com/questions/401847/circle-rectangle-collision-detection-intersection.
         Shape intersection = Shape.intersect(shape1, shape2);
         return intersection.getBoundsInLocal().getWidth() > 0;
+        // This is the inaccurate method that javafx provides.
 //        return shape1.getBoundsInParent().intersects(shape2.getBoundsInParent());
     }
 }

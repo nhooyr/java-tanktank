@@ -27,6 +27,8 @@ class Tank implements Maze.CollisionHandler {
     private final Color HEAD_COLOR;
     private final Color BODY_COLOR;
     private final Color OUT_OF_AMNO_HEAD_COLOR;
+    private final static Color DEAD_COLOR = Color.BLACK;
+    private final String COLOR_NAME;
 
     private Polygon headPolygon = new Polygon();
     private Polygon bodyPolygon = new Polygon();
@@ -40,9 +42,10 @@ class Tank implements Maze.CollisionHandler {
     private BulletManager bulletManager;
     private Maze maze;
 
-    protected Tank(double initialAngle, Color bodyColor, Color headColor, Color outOfAmnoColor, Maze maze, HashMap<KeyCode, Op> keyCodeOpHashMap) {
+    protected Tank(String colorName, Color bodyColor, Color headColor, Color outOfAmnoColor, Maze maze, HashMap<KeyCode, Op> keyCodeOpHashMap, double initialAngle) {
         this.maze = maze;
         this.keyCodeOpHashMap = keyCodeOpHashMap;
+        this.COLOR_NAME = colorName;
 
         bulletManager = new BulletManager(maze);
 
@@ -77,8 +80,28 @@ class Tank implements Maze.CollisionHandler {
     }
 
     protected Node getNode() {
-        // head needs to be added after so that it is in front. In case we want to change colors later.
+        // head added after so that you can see it in front.
         return new Group(bodyPolygon, headPolygon);
+    }
+
+    protected Node getNodeFacingRight() {
+        Polygon headPolygonCopy = new Polygon();
+        Polygon bodyPolygonCopy = new Polygon();
+
+        Rectangle headCopy = new Rectangle(head);
+        Rectangle bodyCopy = new Rectangle(body);
+
+        // TODO should the tank be pointing out or into the alert❓¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ need more thought.
+        headCopy.rotate(pivot, -theta+Math.PI);
+        bodyCopy.rotate(pivot, -theta+Math.PI);
+
+        headPolygonCopy.getPoints().setAll(headCopy.getDoubles());
+        bodyPolygonCopy.getPoints().setAll(bodyCopy.getDoubles());
+
+        headPolygonCopy.setFill(headPolygon.getFill());
+        bodyPolygonCopy.setFill(bodyPolygon.getFill());
+
+        return new Group(bodyPolygonCopy, headPolygonCopy);
     }
 
     // The direction of angles is reversed because the coordinate system is reversed.
@@ -233,6 +256,12 @@ class Tank implements Maze.CollisionHandler {
         }
         bulletManager.handleCollisions();
 
+        if (bulletManager.isReloading()) {
+            headPolygon.setFill(OUT_OF_AMNO_HEAD_COLOR);
+        } else {
+            headPolygon.setFill(HEAD_COLOR);
+        }
+
         if (pressedOps.contains(Op.RIGHT)) {
             right();
         }
@@ -248,12 +277,6 @@ class Tank implements Maze.CollisionHandler {
             back();
         }
         maze.handleCollision(this);
-
-        if (bulletManager.isAmnoEmpty()) {
-            headPolygon.setFill(OUT_OF_AMNO_HEAD_COLOR);
-        } else {
-            headPolygon.setFill(HEAD_COLOR);
-        }
     }
 
     protected static final HashMap<KeyCode, Op> keyCodeOpHashMap1 = new HashMap<>();
@@ -275,5 +298,23 @@ class Tank implements Maze.CollisionHandler {
         keyCodeOpHashMap2.put(KeyCode.S, Op.REVERSE);
         keyCodeOpHashMap2.put(KeyCode.A, Op.LEFT);
         keyCodeOpHashMap2.put(KeyCode.V, Op.FIRE);
+    }
+
+
+    private boolean dead;
+
+    protected void kill() {
+        dead = true;
+        headPolygon.setFill(DEAD_COLOR);
+        bodyPolygon.setFill(DEAD_COLOR);
+    }
+
+
+    protected boolean isDead() {
+        return dead;
+    }
+
+    protected String getColorName() {
+        return COLOR_NAME;
     }
 }

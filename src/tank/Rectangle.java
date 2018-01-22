@@ -16,7 +16,15 @@ class Rectangle {
         return height;
     }
 
+    protected Rectangle(Rectangle rect) {
+        this.points = rect.points.clone();
+        this.origin = rect.origin.add(Point2D.ZERO);
+        this.width = width;
+        this.height = height;
+    }
+
     protected Rectangle(double width, double height) {
+        points.clone();
         this.width = width;
         this.height = height;
         points[0] = new Point2D(0, 0);

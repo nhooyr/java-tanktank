@@ -1,8 +1,11 @@
 package tank;
 
 import javafx.animation.AnimationTimer;
+import javafx.application.Platform;
 import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.paint.Color;
 import javafx.stage.Stage;
@@ -12,8 +15,11 @@ import javafx.stage.Stage;
 // https://docs.oracle.com/javase/8/javafx/get-started-tutorial/jfx-architecture.htm
 class Game {
     private Maze maze = new Maze();
-    private Tank tank1 = new Tank(0, Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.keyCodeOpHashMap1);
-    private Tank tank2 = new Tank(Math.PI, Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.keyCodeOpHashMap2);
+    // TODO naming is awkward here, need a better system.
+    private Tank tank1 = new Tank("blue", Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.keyCodeOpHashMap1, 0);
+    private Tank tank2 = new Tank("pink", Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.keyCodeOpHashMap2, Math.PI);
+
+    Stage stage;
 
     // WIDTH and HEIGHT of the scene.
     // We add the thickness because at far right and bottom edges of the screen we are going to place
@@ -22,13 +28,8 @@ class Game {
     private final static double WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
     private final static double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
 
-    // bulletLock is used to ensure that a new bullet cannot be fired
-    // until the bullet firing key is released.
-    private boolean bulletLock;
-
     protected Game(Stage stage) {
-        stage.setResizable(false);
-
+        this.stage = stage;
         Group root = new Group();
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
@@ -44,12 +45,14 @@ class Game {
         scene.addEventHandler(KeyEvent.KEY_RELEASED, this::handleReleased);
 
         stage.setScene(scene);
-        stage.show();
+        stage.centerOnScreen();
     }
+
+    private AnimationTimer timer;
 
     protected void start() {
         Game g = this;
-        AnimationTimer timer = new AnimationTimer() {
+        timer = new AnimationTimer() {
             @Override
             public void handle(long now) {
                 g.handle(now);
@@ -70,18 +73,64 @@ class Game {
     private void handle(long nanos) {
         fpsMeter.handle(nanos);
 
-        // TODO in future use a single bullet manager and a separate bullet limiter.
-        if (tank1.getBulletManager().isDeadTank(tank1) || tank2.getBulletManager().isDeadTank(tank1)) {
-            // TODO tank1 wins.
-        }
-        if (tank1.getBulletManager().isDeadTank(tank2) || tank2.getBulletManager().isDeadTank(tank2)) {
-            // TODO tank2 wins.
+        if (isTank1Dead() || isTank2Dead()) {
+            timer.stop();
+
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Tank Tank");
+            alert.setHeaderText("Game Over!");
+
+            String alertContent = "Wow, what a close game. It's a tie!";
+            // If later we allow the game to keep continuing in the background, we will need to ensure we keep
+            // the alert's graphic in sync with the winning tank.
+            // We could use either tank here for a tie because we just need to show a black tank.
+            // Probably cleaner to create a brand new one. But whatever, this means when tank1 does win, we do not need
+            // to update the graphic because its already correct.
+            Node graphic = tank1.getNodeFacingRight();
+            Tank winningTank = null;
+
+            if (isTank1Dead()) {
+                if (!isTank2Dead()) {
+                    winningTank = tank2;
+                    graphic = tank2.getNodeFacingRight();
+                }
+            } else {
+                winningTank = tank1;
+            }
+
+            if (winningTank != null) {
+                alertContent = String.format("Congratulations to the %s tank for winning!", winningTank.getColorName());
+            }
+            alert.setGraphic(graphic);
+            alert.setContentText(alertContent);
+
+            // Must run later because we cannot call alert.showAndWait() during animation processing. See its docs.
+            // And we might want animation to continue down the road anyhow.
+            Platform.runLater(() -> {
+                alert.showAndWait();
+                MainMenu.display(stage);
+            });
+            return;
         }
 
+        // TODO in future use a single bullet manager and a separate bullet limiter.
+        // TODO in the future another possibility would be to allow the nondead tank to move. Not a big deal right now.
+        if (tank1.getBulletManager().isDeadTank(tank1) || tank2.getBulletManager().isDeadTank(tank1)) {
+            tank1.kill();
+        }
+        if (tank1.getBulletManager().isDeadTank(tank2) || tank2.getBulletManager().isDeadTank(tank2)) {
+            tank2.kill();
+        }
+        if (isTank1Dead() || isTank2Dead()) {
+            // We draw the dead tanks before we prompt the players.
+            return;
+        }
 
         tank1.handle(nanos);
         tank2.handle(nanos);
     }
+
+    private boolean done = false;
 
     private void handlePressed(KeyEvent e) {
         tank1.handlePressed(e.getCode());
@@ -91,5 +140,13 @@ class Game {
     private void handleReleased(KeyEvent e) {
         tank1.handleReleased(e.getCode());
         tank2.handleReleased(e.getCode());
+    }
+
+    protected boolean isTank1Dead() {
+        return tank1.isDead();
+    }
+
+    protected boolean isTank2Dead() {
+        return tank2.isDead();
     }
 }

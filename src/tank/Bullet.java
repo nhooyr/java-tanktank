@@ -12,13 +12,13 @@ import java.util.concurrent.TimeUnit;
 
 class Bullet implements Maze.CollisionHandler {
     private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
-    private static final Paint COLOR = Color.RED;
+    protected static final Paint COLOR = Color.RED; // Used by Game.
     protected static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
-    private static final long DURATION = TimeUnit.SECONDS.toNanos(5);
+    private static final long DURATION = TimeUnit.SECONDS.toNanos(15);
 
     private Point2D velocity;
-    private Circle circle;
-    private long expiry;
+    private final Circle circle;
+    private final long expiry;
 
     protected Bullet(Point2D launchPoint, double theta, long nanos) {
         // We add velocity so the Tank does not instantly die from its own bullet.
@@ -77,7 +77,11 @@ class Bullet implements Maze.CollisionHandler {
         // side will hold the final side the object ended up colliding with, aka the first collision.
         Rectangle side = null;
         // Backtrack.
-        Point2D smallVelocity = velocity.multiply(-1.0 / 8.0);
+        // Very fine because it has a big impact when it comes to hitting corners. See source below. Also, you can test
+        // this by editing BulletManager to allow for a stream of bullets and then move forward and back as you hit a corner.
+        // This should not affect the trajectory of reflected bullets but it does, and it does more if smallVelocity is larger.
+        // There are improvements that can be made to this but whatever.
+        Point2D smallVelocity = velocity.multiply(-1.0 / 64.0);
         do {
             moveBy(smallVelocity);
 
@@ -101,10 +105,18 @@ class Bullet implements Maze.CollisionHandler {
         }
 
         // This means the bullet collided with a corner.
+        // The handling of this was obtained from research.
+        // The most important and useful resources I found were:
+        // See https://gamedev.stackexchange.com/q/112299
+        // and https://gamedev.stackexchange.com/a/10917.
+        // The approaches described in both are entirely equivalent but I went with using resource 1's vectors
+        // because the incantation is significantly more clear.
+        // I am still not sure how exactly the solutions are equivalent but I tested the velocity vectors produced
+        // by both and they were in fact always equivalent if not negligently different (like difference of e-15).
 
         Point2D corner;
 
-        // TODO this could be cleaned up if we used the Rectangle class only.
+        // TODO this could be cleaned up if we used our custom Rectangle class for the Maze.
         if (x < side.getX() && y < side.getY()) {
             // topLeft.
             corner = new Point2D(side.getX(), side.getY());
@@ -119,12 +131,10 @@ class Bullet implements Maze.CollisionHandler {
             corner = new Point2D(side.getX() + side.getWidth(), side.getY() + side.getHeight());
         }
 
-        // Magic. Researched to figure this out. Mostly obtained from https://gamedev.stackexchange.com/questions/10911/a-ball-hits-the-corner-where-will-it-deflect.
         Point2D center = getCenter();
-        Point2D diff = center.subtract(corner);
-        double c = -2 * (velocity.getX() * diff.getX() + velocity.getY() * diff.getY()) / (diff.getX() * diff.getX() + diff.getY() * diff.getY());
-        Point2D vectorDelta = new Point2D(c * diff.getX(), c * diff.getY());
-        velocity = velocity.add(vectorDelta);
+        // Normal points from the corner to the center of the circle.
+        Point2D normal = center.subtract(corner).normalize();
+        velocity = velocity.subtract(normal.multiply(velocity.dotProduct(normal)).multiply(2));
     }
 
     // Used for detecting which cells to check collisions with.

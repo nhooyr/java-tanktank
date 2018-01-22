@@ -16,6 +16,9 @@ class Maze {
     private Cell[][] grid = new Cell[COLUMNS][ROWS];
 
     // These three are used in various places.
+    // This is twice the bullet velocity to prevent the bullet from moving through any of the walls without a collision being detected.
+    // Given the bullet velocity itself is defined to be greater than the tank velocity, this also ensures that the tank does not
+    // punch through any walls without the collision being detected.
     protected final static double THICKNESS = Bullet.VELOCITY * 2;
     protected final static int ROWS = 8;
     protected final static int COLUMNS = 10;
@@ -144,11 +147,11 @@ class Maze {
 
     // Dirty hack because collision detection is expensive. See the Physics class.
     // This could probably be optimized even further based on the overlaps in sides but its more than
-    // fast enough as it is and it is really difficult to understand. It is hard to explain
+    // fast enough as it is and it is difficult enough to understand. It is hard to explain
     // but what we are doing is finding the closest two horizontal and vertical sides and checking for
     // collisions against those.
-    // This assumes that the object can only touch two horizontal or two vertical sides maximum at once.
-    // We do not return early if a collision is detected because it is possible for multiple collisions to occur. TODO reevalute that assumption
+    // This assumes that the object can only touch max two horizontal and two vertical sides maximum at once.
+    // We do not return early if a collision is detected because it is possible for multiple collisions to occur.
     protected void handleCollision(CollisionHandler obj) {
         Point2D objCenter = obj.getCenter();
         // Coordinates if the units were cells.
@@ -199,6 +202,8 @@ class Maze {
         obj.handleCollision(sides);
     }
 
+    // The interface implemented by classes that the maze can detect collisions for.
+    // Certain assumptions about the class are made. See the handleCollision method.
     protected interface CollisionHandler {
         Point2D getCenter();
 
