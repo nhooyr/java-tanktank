@@ -7,6 +7,7 @@ import javafx.scene.Node;
 import java.util.ArrayList;
 import java.util.Iterator;
 
+// BulletManager manages the creation and removal of the bullets of a tank.
 class BulletManager {
     private static final int MAX_BULLETS = 5;
 
@@ -22,10 +23,13 @@ class BulletManager {
         this.maze = maze;
     }
 
+    // Used for adding the bullets to the scene.
     Node getNode() {
         return group;
     }
 
+    // addBullet creates a bullet at the launchPoint moving in the direction theta. nanos is the current time and used
+    // for removing the bullet when it is too old.
     void addBullet(final Point2D launchPoint, final double theta, final long nanos) {
         if (lock || bullets.size() >= MAX_BULLETS) {
             return;
@@ -35,6 +39,7 @@ class BulletManager {
         bullets.add(bullet);
     }
 
+    // update updates the position of the bullets and removes expired ones.
     void update(final long nanos) {
         final Iterator<Bullet> it = bullets.iterator();
         while (it.hasNext()) {
@@ -48,13 +53,18 @@ class BulletManager {
         }
     }
 
-    void handleCollisions() {
-        bullets.forEach(maze::handleCollision);
+    // handleMazeCollisions handles collisions between all of the manager's bullets and the maze.
+    void handleMazeCollisions() {
+        bullets.forEach(bullet -> {
+            final ArrayList<Rectangle> segs = maze.getCollisionCandidates(bullet.getCenter());
+            bullet.handleMazeCollision(segs);
+        });
     }
 
+    // isDeadTank returns true if at least one bullet intersects with the tank.
     boolean isDeadTank(final Tank tank) {
         for (final Bullet bullet : bullets) {
-            if (tank.checkCollision(bullet.getShape())) {
+            if (Physics.checkCollision(bullet.getShape(), tank.getShape())) {
                 return true;
             }
         }

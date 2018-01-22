@@ -1,20 +1,20 @@
 package tank;
 
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
 
+// Cell represents a cell within the Maze.
 class Cell {
     static final double LENGTH = 3.5 * Tank.BODY_HEIGHT;
-    private static final Color COLOR = Color.BLACK;
+
     private final int row;
     private final int column;
-    private final ArrayList<MutableBoolean> yummySides = new ArrayList<>();
+    private final ArrayList<MutableBoolean> yummySegments = new ArrayList<>();
     private final double x;
     private final double y;
-    // True means the side is opaque.
-    // Protected so that the grid constructor can access.
+
+    // True means the segment is opaque.
     private final MutableBoolean up;
     private final MutableBoolean left;
     private final MutableBoolean right = new MutableBoolean();
@@ -29,7 +29,7 @@ class Cell {
         this.up = up;
         this.left = left;
 
-        makeYummySides();
+        setYummySides();
     }
 
     int getRow() {
@@ -56,32 +56,33 @@ class Cell {
         return down;
     }
 
-    ArrayList<MutableBoolean> getYummySides() {
-        return yummySides;
+    ArrayList<MutableBoolean> getYummySegments() {
+        return yummySegments;
     }
 
-    private void makeYummySides() {
+    private void setYummySides() {
         // If up is true and this cell is not at the top row then it is yummy.
         if (up.value && row != 0) {
-            yummySides.add(up);
+            yummySegments.add(up);
         }
 
         // If right is true and this cell is not at the right edge then it is yummy.
         if (right.value && column != Maze.COLUMNS - 1) {
-            yummySides.add(right);
+            yummySegments.add(right);
         }
 
         // If down is true and this cell is not at the bottom row then it is yummy.
         if (down.value && row != Maze.ROWS - 1) {
-            yummySides.add(down);
+            yummySegments.add(down);
         }
 
         // If left is true and this cell is not at the left edge then it is yummy.
         if (left.value && column != 0) {
-            yummySides.add(left);
+            yummySegments.add(left);
         }
     }
 
+    // isYummy tells the maze generation algorithm whether this cell can have more segments removed, or "eaten".
     boolean isYummy() {
         int yummyThreshold = 2;
         if (column == 0 ||
@@ -90,35 +91,34 @@ class Cell {
                 row == Maze.ROWS - 1) {
             // We make bordering cells more yummy to ensure we do not any encircled areas and to allow for a open outer
             // area. An interesting map element.
-            // No proof that this ensures no encircling areas but it is my intuition.
+            // No proof that this ensures no encircling areas but it is my intuition and seems to work in practice.
             yummyThreshold = 1;
         }
-        return yummySides.size() > yummyThreshold;
+        return yummySegments.size() > yummyThreshold;
     }
 
-    Rectangle getSideUp() {
-        return getSide(this.up, x, y, Cell.LENGTH, Maze.THICKNESS);
+    Rectangle getUpSeg() {
+        return getSeg(this.up, x, y, Cell.LENGTH, Maze.THICKNESS);
     }
 
-    Rectangle getSideLeft() {
-        return getSide(this.left, x, y, Maze.THICKNESS, Cell.LENGTH);
+    Rectangle getLeftSeg() {
+        return getSeg(this.left, x, y, Maze.THICKNESS, Cell.LENGTH);
     }
 
-    // We add maze thickness to the length's in the down side and right side to prevent gaping squares from appearing
-    // where a invisible side up or side left would be.
-    Rectangle getSideDown() {
-        return getSide(this.down, x, y + Cell.LENGTH, Cell.LENGTH + Maze.THICKNESS, Maze.THICKNESS);
+    // We add maze thickness to the lengths in the down segment and right segment to prevent gaping squares from appearing
+    // where an invisible up segment or left segment would be.
+    Rectangle getDownSeg() {
+        return getSeg(this.down, x, y + Cell.LENGTH, Cell.LENGTH + Maze.THICKNESS, Maze.THICKNESS);
     }
 
-    Rectangle getSideRight() {
-        return getSide(this.right, x + Cell.LENGTH, y, Maze.THICKNESS, Cell.LENGTH + Maze.THICKNESS);
+    Rectangle getRightSeg() {
+        return getSeg(this.right, x + Cell.LENGTH, y, Maze.THICKNESS, Cell.LENGTH + Maze.THICKNESS);
     }
 
-    private Rectangle getSide(final MutableBoolean visibility, final double x, final double y, final double width, final double height) {
+    private Rectangle getSeg(final MutableBoolean visibility, final double x, final double y, final double width, final double height) {
         Rectangle rect = null;
         if (visibility.value) {
             rect = new Rectangle(x, y, width, height);
-            rect.setFill(COLOR);
         }
         return rect;
     }

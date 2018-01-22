@@ -20,24 +20,25 @@ import java.util.Optional;
 class Game {
     // WIDTH and HEIGHT of the scene.
     // We add the thickness because at far right and bottom edges of the screen we are going to place
-    // the final sides of the grid and they need additional space because of how the grid drawing algorithm works.
+    // the final segments of the grid and they need additional space because of how the grid drawing algorithm works.
     // See the Maze class.
     private static final double WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
     private static final double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
+
     private static final ButtonType restartButtonType = new ButtonType("RESTART", ButtonBar.ButtonData.NEXT_FORWARD);
     // This is unfortunate but javafx sucks. One of the buttons need to be a cancel button otherwise you cant X the dialog...
     // I'd rather not add a third button so this is how its going to work unfortunately. Worse part is that it treats
-    // closing the window as clicking the cancel button, which is certainly not necessarily the case. Maybe this is a misuse
-    // of alerts but whatever.
+    // closing the window as clicking the cancel button, which is certainly not necessarily the case. We would prefer the
+    // process exit if the alert window is Xed. Maybe this is a misuse of alerts but whatever.
     private static final ButtonType mainMenuButtonType = new ButtonType("MAIN MENU", ButtonBar.ButtonData.NO);
+
     private final Maze maze = new Maze();
-    private final Tank tank1 = new Tank("blue", Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.keyCodeOpHashMap1, 0);
-    private final Tank tank2 = new Tank("pink", Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.keyCodeOpHashMap2, Math.PI);
+    private final Tank tank1 = new Tank("blue", Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.KEY_CODES_1, 0);
+    private final Tank tank2 = new Tank("pink", Color.PINK, Color.DARKRED, Color.LIGHTPINK, maze, Tank.KEY_CODES_2, Math.PI);
     private final Stage stage;
     private final FPSMeter fpsMeter = new FPSMeter();
 
     private AnimationTimer timer;
-
 
     Game(final Stage stage) {
         this.stage = stage;
@@ -106,7 +107,7 @@ class Game {
             }
 
             if (winningTank != null) {
-                alertContent = String.format("Congratulations to the %s tank for winning!", winningTank.getColorName());
+                alertContent = String.format("Congratulations to the %s tank for winning!", winningTank.getMainColorName());
             }
             alert.setGraphic(graphic);
             alert.setContentText(alertContent);

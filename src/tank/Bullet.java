@@ -4,23 +4,26 @@ import javafx.geometry.Point2D;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
-import javafx.scene.shape.Rectangle;
 import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
-class Bullet implements Maze.CollisionHandler {
+// Bullet represents a bullet emitted by a tank.
+class Bullet {
     static final double VELOCITY = Tank.VELOCITY * 1.5; // exported for use in Maze.
+
     private static final double RADIUS = Tank.HEAD_HEIGHT / 2;
     private static final Paint COLOR = Color.RED;
     private static final long DURATION = TimeUnit.SECONDS.toNanos(15);
+
     private final Circle circle;
     private final long expiry;
     private Point2D velocity;
 
     Bullet(Point2D launchPoint, final double theta, final long nanos) {
-        // We add velocity so the Tank does not instantly die from its own bullet.
+        // We add the velocity and radius to the launchPoint so the Tank does not instantly die from its own bullet.
+        // Since the bullet is defined to be 1.5 times faster than the tank, this guarantees that the tank will not die.
         final Point2D radiusForward = Physics.decomposeVector(RADIUS + VELOCITY, theta);
         launchPoint = launchPoint.add(radiusForward);
 
@@ -51,30 +54,35 @@ class Bullet implements Maze.CollisionHandler {
         return expiry;
     }
 
+    // Used for collision detection and adding/removing the bullets to/from the scene.
     Shape getShape() {
         return circle;
     }
 
-    // The way this works is that first we check if the rectangle is intersecting with the bullet. If so,
-    // then we need to figure out which side the bullet is on. So we move the bullet back until there is no
-    // collision. Then we check which side is closest to the bullet and based on that return the appropriate
-    // collision status.
-    public void handleCollision(final ArrayList<Rectangle> sides) {
-        for (int i = 0; i < sides.size(); i++) {
-            if (!Physics.checkCollision(circle, sides.get(i))) {
-                // The bullet does not intersect the side.
-                sides.remove(i);
+    // The way this works is that first we check if at least one of the candidate segments is intersecting with the bullet. If so,
+    // then we need to figure out which segment the bullet collided with first and on which edge of that seg.
+    // So we move the bullet back until there is no collision. The last seg left before there being no collision
+    // is the seg the bullet collided with first. Then, we check if the bullet's center is between the minx-manx
+    // or between miny-maxy of the seg. Depending on which is true, a horizontal or vertical bounce needs to occur.
+    // If neither is true, then the bullet collided with a corner and we have to handle that specially. See the comments
+    // below.
+    void handleMazeCollision(final ArrayList<Rectangle> segments) {
+        for (int i = 0; i < segments.size(); i++) {
+            if (!Physics.checkCollision(circle, segments.get(i).getPolygon())) {
+                // The bullet does not intersect the seg.
+                segments.remove(i);
                 i--;
             }
         }
 
-        if (sides.size() == 0) {
-            // The bullet does not intersect any of the sides.
+        if (segments.size() == 0) {
+            // The bullet does not intersect any of the segments.
             return;
         }
 
-        // side will hold the final side the object ended up colliding with, aka the first collision.
-        Rectangle side = null;
+        // seg will hold the final seg the object ended up colliding with, aka the first collision.
+        Rectangle seg = null;
+
         // Backtrack.
         // Very fine because it has a big impact when it comes to hitting corners. See source below. Also, you can test
         // this by editing BulletManager to allow for a stream of bullets and then move forward and back as you hit a corner.
@@ -84,22 +92,28 @@ class Bullet implements Maze.CollisionHandler {
         do {
             moveBy(smallVelocity);
 
-            for (int i = 0; i < sides.size(); i++) {
-                if (!Physics.checkCollision(circle, sides.get(i))) {
-                    side = sides.remove(i);
+            for (int i = 0; i < segments.size(); i++) {
+                if (!Physics.checkCollision(circle, segments.get(i).getPolygon())) {
+                    seg = segments.remove(i);
                     i--;
                 }
             }
-        } while (sides.size() > 0);
+        } while (segments.size() > 0);
 
         final double x = circle.getCenterX();
         final double y = circle.getCenterY();
 
-        assert side != null;
-        if (x >= side.getX() && x <= side.getX() + side.getWidth()) {
+        assert seg != null;
+
+        Point2D topLeft = seg.getTopLeft();
+        Point2D topRight = seg.getTopRight();
+        Point2D botRight = seg.getBotRight();
+        Point2D botLeft = seg.getBotLeft();
+
+        if (x >= topLeft.getX() && x <= topRight.getX()) {
             horizontalBounce();
             return;
-        } else if (y >= side.getY() && y <= side.getY() + side.getHeight()) {
+        } else if (y >= topLeft.getY() && y <= botLeft.getY()) {
             verticalBounce();
             return;
         }
@@ -112,32 +126,29 @@ class Bullet implements Maze.CollisionHandler {
         // The approaches described in both are entirely equivalent but I went with using resource 1's vectors
         // because the incantation is significantly more clear.
         // I am still not sure how exactly the solutions are equivalent but I tested the velocity vectors produced
-        // by both and they were in fact always equivalent if not negligently different (like difference of e-15).
+        // by both and they were in fact always equivalent if not negligently different (like difference of e-15 and sometimes none).
 
         final Point2D corner;
 
-        // TODO this could be cleaned up if we used our custom Rectangle class for the Maze.
-        if (x < side.getX() && y < side.getY()) {
-            // topLeft.
-            corner = new Point2D(side.getX(), side.getY());
-        } else if (x < side.getX() && y > side.getY() + side.getHeight()) {
-            // bottomLeft.
-            corner = new Point2D(side.getX(), side.getY() + side.getHeight());
-        } else if (x > side.getX() + side.getWidth() && y < side.getY()) {
-            // topRight.
-            corner = new Point2D(side.getX() + side.getWidth(), side.getY());
+        if (x < topLeft.getX() && y < topLeft.getY()) {
+            corner = new Point2D(topLeft.getX(), topLeft.getY());
+        } else if (x < topLeft.getX() && y > botLeft.getY()) {
+            corner = new Point2D(topLeft.getX(), botLeft.getY());
+        } else if (x > topRight.getX() && y < botLeft.getY()) {
+            corner = new Point2D(topRight.getX(), botLeft.getY());
         } else {
-            // bottomRight
-            corner = new Point2D(side.getX() + side.getWidth(), side.getY() + side.getHeight());
+            corner = new Point2D(botRight.getX(), botRight.getY());
         }
 
         final Point2D center = getCenter();
+
         // Normal points from the corner to the center of the circle.
         final Point2D normal = center.subtract(corner).normalize();
         velocity = velocity.subtract(normal.multiply(velocity.dotProduct(normal)).multiply(2));
     }
 
-    public Point2D getCenter() {
+    // This is used by BulletManager to get the possible segments of Maze that the bullet could have collided with.
+    Point2D getCenter() {
         return new Point2D(circle.getCenterX(), circle.getCenterY());
     }
 

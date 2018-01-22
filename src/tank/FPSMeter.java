@@ -2,6 +2,9 @@ package tank;
 
 import java.util.concurrent.TimeUnit;
 
+// FPSMeter is used to report the number of frames calculated in the last second to stderr.
+// I am not sure if this works absolutely correctly because its using javafx's pulses to calculate
+// the FPS and I do not think that pulses are one to one with frames. But whatever, it works well enough.
 class FPSMeter {
     private static final long SECOND = TimeUnit.SECONDS.toNanos(1);
     private long framesInSecond = 0;
@@ -13,9 +16,8 @@ class FPSMeter {
             nextSecond = nanos + SECOND;
         } else if (nanos >= nextSecond) {
             nextSecond = nanos + SECOND;
-            System.out.println(framesInSecond);
+            System.err.println(framesInSecond);
             framesInSecond = 0;
         }
-
     }
 }
