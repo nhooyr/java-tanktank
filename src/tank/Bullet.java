@@ -23,7 +23,8 @@ class Bullet {
 
     Bullet(Point2D launchPoint, final double theta, final long nanos) {
         // We add the velocity and radius to the launchPoint so the Tank does not instantly die from its own bullet.
-        // Since the bullet is defined to be 1.5 times faster than the tank, this guarantees that the tank will not die.
+        // Since the bullet is defined to be 1.5 times faster than the tank, this guarantees that the tank will not die
+        // as the tank cannot move into it.
         final Point2D radiusForward = Physics.decomposeVector(RADIUS + VELOCITY, theta);
         launchPoint = launchPoint.add(radiusForward);
 
@@ -31,14 +32,6 @@ class Bullet {
         velocity = Physics.decomposeVector(VELOCITY, theta);
 
         expiry = nanos + DURATION;
-    }
-
-    private void horizontalBounce() {
-        velocity = new Point2D(velocity.getX(), -velocity.getY());
-    }
-
-    private void verticalBounce() {
-        velocity = new Point2D(-velocity.getX(), velocity.getY());
     }
 
     private void moveBy(final Point2D velocity) {
@@ -55,8 +48,17 @@ class Bullet {
     }
 
     // Used for collision detection and adding/removing the bullets to/from the scene.
+    // TODO would be cleaner to have getNode() for adding to scene and getShape() for collision detection because they have a difference. See Tank class.
     Shape getShape() {
         return circle;
+    }
+
+    private void horizontalBounce() {
+        velocity = new Point2D(velocity.getX(), -velocity.getY());
+    }
+
+    private void verticalBounce() {
+        velocity = new Point2D(-velocity.getX(), velocity.getY());
     }
 
     // The way this works is that first we check if at least one of the candidate segments is intersecting with the bullet. If so,
@@ -67,8 +69,9 @@ class Bullet {
     // If neither is true, then the bullet collided with a corner and we have to handle that specially. See the comments
     // below.
     void handleMazeCollision(final ArrayList<Rectangle> segments) {
+        // TODO this code is copied in Tank too, we could use a shared method that accepts a Shape.
         for (int i = 0; i < segments.size(); i++) {
-            if (!Physics.checkCollision(circle, segments.get(i).getPolygon())) {
+            if (!Physics.isIntersecting(circle, segments.get(i).getPolygon())) {
                 // The bullet does not intersect the seg.
                 segments.remove(i);
                 i--;
@@ -93,27 +96,25 @@ class Bullet {
             moveBy(smallVelocity);
 
             for (int i = 0; i < segments.size(); i++) {
-                if (!Physics.checkCollision(circle, segments.get(i).getPolygon())) {
+                if (!Physics.isIntersecting(circle, segments.get(i).getPolygon())) {
                     seg = segments.remove(i);
                     i--;
                 }
             }
         } while (segments.size() > 0);
 
-        final double x = circle.getCenterX();
-        final double y = circle.getCenterY();
+        final Point2D center = getCenter();
 
         assert seg != null;
+        final Point2D topLeft = seg.getTopLeft();
+        final Point2D topRight = seg.getTopRight();
+        final Point2D botRight = seg.getBotRight();
+        final Point2D botLeft = seg.getBotLeft();
 
-        Point2D topLeft = seg.getTopLeft();
-        Point2D topRight = seg.getTopRight();
-        Point2D botRight = seg.getBotRight();
-        Point2D botLeft = seg.getBotLeft();
-
-        if (x >= topLeft.getX() && x <= topRight.getX()) {
+        if (center.getX() >= topLeft.getX() && center.getX() <= topRight.getX()) {
             horizontalBounce();
             return;
-        } else if (y >= topLeft.getY() && y <= botLeft.getY()) {
+        } else if (center.getY() >= topLeft.getY() && center.getY() <= botLeft.getY()) {
             verticalBounce();
             return;
         }
@@ -130,21 +131,23 @@ class Bullet {
 
         final Point2D corner;
 
-        if (x < topLeft.getX() && y < topLeft.getY()) {
-            corner = new Point2D(topLeft.getX(), topLeft.getY());
-        } else if (x < topLeft.getX() && y > botLeft.getY()) {
-            corner = new Point2D(topLeft.getX(), botLeft.getY());
-        } else if (x > topRight.getX() && y < botLeft.getY()) {
-            corner = new Point2D(topRight.getX(), botLeft.getY());
+        if (center.getX() < topLeft.getX() && center.getY() < topLeft.getY()) {
+            corner = topLeft;
+        } else if (center.getX() < botLeft.getX() && center.getY() > botLeft.getY()) {
+            corner = botLeft;
+        } else if (center.getX() > topRight.getX() && center.getY() < topRight.getY()) {
+            corner = topRight;
         } else {
-            corner = new Point2D(botRight.getX(), botRight.getY());
+            corner = botRight;
         }
-
-        final Point2D center = getCenter();
 
         // Normal points from the corner to the center of the circle.
         final Point2D normal = center.subtract(corner).normalize();
-        velocity = velocity.subtract(normal.multiply(velocity.dotProduct(normal)).multiply(2));
+        velocity = reflect(velocity, normal);
+    }
+
+    private Point2D reflect(final Point2D velocity, final Point2D normal) {
+        return velocity.subtract(normal.multiply(velocity.dotProduct(normal)).multiply(2));
     }
 
     // This is used by BulletManager to get the possible segments of Maze that the bullet could have collided with.

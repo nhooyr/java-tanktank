@@ -64,7 +64,7 @@ class BulletManager {
     // isDeadTank returns true if at least one bullet intersects with the tank.
     boolean isDeadTank(final Tank tank) {
         for (final Bullet bullet : bullets) {
-            if (Physics.checkCollision(bullet.getShape(), tank.getShape())) {
+            if (Physics.isIntersecting(bullet.getShape(), tank.getShape())) {
                 return true;
             }
         }

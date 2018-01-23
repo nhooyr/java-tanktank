@@ -14,7 +14,9 @@ import javafx.stage.Stage;
 
 import java.util.Optional;
 
-// All methods that will be called from JavaFX onto user code run on a
+// Game represents the state of the game and acts as the glue class between all of the other components.
+//
+// NOTE: All methods that will be called from JavaFX onto user code run on a
 // single thread so no synchronization is necessary.
 // https://docs.oracle.com/javase/8/javafx/get-started-tutorial/jfx-architecture.htm
 class Game {
@@ -25,12 +27,12 @@ class Game {
     private static final double WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
     private static final double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
 
-    private static final ButtonType restartButtonType = new ButtonType("RESTART", ButtonBar.ButtonData.NEXT_FORWARD);
+    private static final ButtonType RESTART_BUTTON_TYPE = new ButtonType("RESTART", ButtonBar.ButtonData.NEXT_FORWARD);
     // This is unfortunate but javafx sucks. One of the buttons need to be a cancel button otherwise you cant X the dialog...
     // I'd rather not add a third button so this is how its going to work unfortunately. Worse part is that it treats
     // closing the window as clicking the cancel button, which is certainly not necessarily the case. We would prefer the
     // process exit if the alert window is Xed. Maybe this is a misuse of alerts but whatever.
-    private static final ButtonType mainMenuButtonType = new ButtonType("MAIN MENU", ButtonBar.ButtonData.NO);
+    private static final ButtonType MAIN_MENU_BUTTON_TYPE = new ButtonType("MAIN MENU", ButtonBar.ButtonData.NO);
 
     private final Maze maze = new Maze();
     private final Tank tank1 = new Tank("blue", Color.SKYBLUE, Color.DARKBLUE, Color.LIGHTBLUE, maze, Tank.KEY_CODES_1, 0);
@@ -60,6 +62,13 @@ class Game {
         stage.centerOnScreen();
     }
 
+    // The game loop runs on an AnimationTimer which calls handle() about every 1/60 of a second.
+    // Rendering and updating are handled separately in JavaFX so this is the standard design of a game loop.
+    // https://gafferongames.com/post/fix_your_timestep/
+    // https://gamedev.stackexchange.com/questions/1589/when-should-i-use-a-fixed-or-variable-time-step
+    // There are many other articles recommending this design.
+    // Though, I am not positive it works the way I think it does and the docs are not very clear. So whatever,
+    // no big deal.
     void start() {
         final Game g = this;
         timer = new AnimationTimer() {
@@ -71,17 +80,10 @@ class Game {
         timer.start();
     }
 
-    // The game loop runs on an AnimationTimer which calls handle() about every 1/60 of a second.
-    // Rendering and updating are handled separately in JavaFX so this is the standard design of a game loop.
-    // https://gafferongames.com/post/fix_your_timestep/
-    // https://gamedev.stackexchange.com/questions/1589/when-should-i-use-a-fixed-or-variable-time-step
-    // There are many other articles recommending this design.
-    // Though, I am not positive it works the way I think it does and the docs are not very clear. So whatever,
-    // no big deal.
     private void handle(final long nanos) {
         fpsMeter.handle(nanos);
 
-        if (isTank1Dead() || isTank2Dead()) {
+        if (tank1.isDead() || tank2.isDead()) {
             timer.stop();
 
             final Alert alert = new Alert(Alert.AlertType.INFORMATION);
@@ -94,13 +96,13 @@ class Game {
             // We could use either tank here for a tie because we just need to show a black tank.
             // Probably cleaner to create a brand new one. But whatever, this means when tank1 does win, we do not need
             // to update the graphic because its already correct.
-            Node graphic = tank1.getNodeFacingRight();
+            Node graphic = tank1.getWinPose();
             Tank winningTank = null;
 
-            if (isTank1Dead()) {
-                if (!isTank2Dead()) {
+            if (tank1.isDead()) {
+                if (!tank2.isDead()) {
                     winningTank = tank2;
-                    graphic = tank2.getNodeFacingRight();
+                    graphic = tank2.getWinPose();
                 }
             } else {
                 winningTank = tank1;
@@ -112,7 +114,7 @@ class Game {
             alert.setGraphic(graphic);
             alert.setContentText(alertContent);
 
-            alert.getButtonTypes().setAll(mainMenuButtonType, restartButtonType);
+            alert.getButtonTypes().setAll(MAIN_MENU_BUTTON_TYPE, RESTART_BUTTON_TYPE);
 
             // Must run later because we cannot call alert.showAndWait() during animation processing. See its docs.
             // And we might want animation to continue down the road anyhow.
@@ -123,7 +125,7 @@ class Game {
                 final Optional<ButtonType> buttonType = alert.showAndWait();
 
                 // If the alert had no result, then we default to showing the main menu.
-                if (!buttonType.isPresent() || buttonType.get() == mainMenuButtonType) {
+                if (!buttonType.isPresent() || buttonType.get() == MAIN_MENU_BUTTON_TYPE) {
                     MainMenu.display(stage);
                     return;
                 }
@@ -142,8 +144,10 @@ class Game {
         if (tank1.getBulletManager().isDeadTank(tank2) || tank2.getBulletManager().isDeadTank(tank2)) {
             tank2.kill();
         }
-        if (isTank1Dead() || isTank2Dead()) {
-            // We draw the dead tanks before we prompt the players.
+        if (tank1.isDead() || tank2.isDead()) {
+            // We draw the dead tanks before we announce to the players.
+            // Otherwise if we try and prompt in this pulse, then there is a slight freeze before
+            // the dead tank can be drawn. Its awkward and ruins the fluidity.
             return;
         }
 
@@ -159,13 +163,5 @@ class Game {
     private void handleReleased(final KeyEvent e) {
         tank1.handleReleased(e.getCode());
         tank2.handleReleased(e.getCode());
-    }
-
-    private boolean isTank1Dead() {
-        return tank1.isDead();
-    }
-
-    private boolean isTank2Dead() {
-        return tank2.isDead();
     }
 }

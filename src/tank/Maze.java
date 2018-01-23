@@ -9,6 +9,7 @@ import javafx.scene.shape.Polygon;
 import java.util.ArrayList;
 import java.util.Random;
 
+// Maze represents the tank tank maze.
 class Maze {
     // These three are used in various places.
     // This is twice the bullet velocity to prevent the bullet from moving through any of the walls without a collision being detected.
@@ -143,7 +144,7 @@ class Maze {
         }
     }
 
-    private void addSeg(Rectangle seg) {
+    private void addSeg(final Rectangle seg) {
         if (seg != null) {
             final Polygon poly = seg.getPolygon();
             poly.setFill(Maze.COLOR);

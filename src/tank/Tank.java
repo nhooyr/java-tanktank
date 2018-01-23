@@ -5,7 +5,6 @@ import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.input.KeyCode;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polygon;
 import javafx.scene.shape.Shape;
 
 import java.util.ArrayList;
@@ -13,7 +12,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Random;
 
-// TODO when spawning always make tanks face away from each other.
+// Tank represents the tanks in the game.
+//
 class Tank {
     static final int VELOCITY = 3; // exported for use in Bullet.
     static final double BODY_HEIGHT = 30; // exported for use in Cell.
@@ -52,7 +52,7 @@ class Tank {
     private final Maze maze;
     private final HashMap<KeyCode, Op> keycodes;
     // Keys pressed since the last frame.
-    private final HashSet<Op> pressedOps = new HashSet<>();
+    private final HashSet<Op> activeOps = new HashSet<>();
     private Shape shape;
     // Middle of body.
     private Point2D pivot = new Point2D(body.getWidth() / 2, body.getHeight() / 2);
@@ -103,10 +103,7 @@ class Tank {
         return new Group(body.getPolygon(), head.getPolygon());
     }
 
-    Node getNodeFacingRight() {
-        final Polygon headPolygonCopy = new Polygon();
-        final Polygon bodyPolygonCopy = new Polygon();
-
+    Node getWinPose() {
         final Rectangle headCopy = new Rectangle(head);
         final Rectangle bodyCopy = new Rectangle(body);
 
@@ -114,7 +111,7 @@ class Tank {
         headCopy.rotate(pivot, -theta + Math.PI);
         bodyCopy.rotate(pivot, -theta + Math.PI);
 
-        return new Group(bodyPolygonCopy, headPolygonCopy);
+        return new Group(bodyCopy.getPolygon(), headCopy.getPolygon());
     }
 
     // The direction of angles is reversed because the coordinate system is reversed.
@@ -177,7 +174,7 @@ class Tank {
     }
 
     private boolean checkCollision(final Shape shape) {
-        return Physics.checkCollision(getShape(), shape);
+        return Physics.isIntersecting(getShape(), shape);
     }
 
     // TODO add edge mechanics, e.g. instead of just stopping the tank, we lower velocity/slide.
@@ -220,7 +217,6 @@ class Tank {
         do {
             assert reverseOp != null;
             reverseOp.run();
-            syncPolygons();
 
             for (int i = 0; i < segs.size(); i++) {
                 if (!checkCollision(segs.get(i).getPolygon())) {
@@ -232,7 +228,7 @@ class Tank {
     }
 
     void handlePressed(final KeyCode keyCode) {
-        pressedOps.add(keycodes.get(keyCode));
+        activeOps.add(keycodes.get(keyCode));
     }
 
     void handleReleased(final KeyCode keyCode) {
@@ -240,12 +236,13 @@ class Tank {
         if (op == Op.FIRE) {
             bulletManager.lock = false;
         }
-        pressedOps.remove(op);
+        activeOps.remove(op);
     }
 
     void handle(final long nanos) {
         bulletManager.update(nanos);
-        if (pressedOps.contains(Op.FIRE)) {
+
+        if (activeOps.contains(Op.FIRE)) {
             bulletManager.addBullet(
                     getBulletLaunchPoint(),
                     getTheta(),
@@ -261,18 +258,18 @@ class Tank {
             head.getPolygon().setFill(headColor);
         }
 
-        if (pressedOps.contains(Op.RIGHT)) {
+        if (activeOps.contains(Op.RIGHT)) {
             right();
         }
-        if (pressedOps.contains(Op.LEFT)) {
+        if (activeOps.contains(Op.LEFT)) {
             left();
         }
         handleMazeCollisions();
 
-        if (pressedOps.contains(Op.FORWARD)) {
+        if (activeOps.contains(Op.FORWARD)) {
             forward();
         }
-        if (pressedOps.contains(Op.REVERSE)) {
+        if (activeOps.contains(Op.REVERSE)) {
             back();
         }
         handleMazeCollisions();

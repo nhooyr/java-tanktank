@@ -1,7 +1,6 @@
 package tank;
 
 import javafx.geometry.Bounds;
-import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -14,8 +13,10 @@ import javafx.stage.Stage;
 import java.awt.*;
 import java.net.URI;
 
+// MainMenu represents the main menu of tank tank.
 // TODO decorate the main menu with tanks and also use idiomatic javafx layouting instead of hard coding.
 class MainMenu {
+    private static final String HELP_URL = "https://github.com/nhooyr/java-tanktank";
     private static final double WIDTH = 300;
     private static final double HEIGHT = 200;
 
@@ -26,7 +27,6 @@ class MainMenu {
         final Text title = new Text("Tank Trouble");
         title.setFont(Font.font(30));
         final Bounds titleBounds = title.getLayoutBounds();
-        // Center.
         title.setLayoutX(WIDTH / 2 - titleBounds.getWidth() / 2);
         title.setLayoutY(titleBounds.getHeight() + 10);
 
@@ -42,13 +42,12 @@ class MainMenu {
         helpButton.setPrefWidth(60);
         helpButton.setOnAction(event -> {
             try {
-                Desktop.getDesktop().browse(new URI("https://github.com/nhooyr/java-tanktank"));
+                Desktop.getDesktop().browse(new URI(HELP_URL));
             } catch (final Exception e) {
-                e.printStackTrace();
                 final Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Tank Tank");
-                alert.setHeaderText("Help link could not be opened");
-                alert.setContentText("Please take a look at the printed stack trace.");
+                alert.setHeaderText("The help URL could not automatically be opened");
+                alert.setContentText(String.format("Please manually visit %s for help.", HELP_URL));
                 alert.show();
             }
         });
@@ -58,7 +57,6 @@ class MainMenu {
                 playButton,
                 helpButton
         );
-        vbox.setAlignment(Pos.CENTER);
         vbox.setLayoutX(WIDTH / 2 - playButton.getPrefWidth() / 2);
         vbox.setLayoutY(title.getLayoutY() + vbox.getSpacing() * 1.5);
 

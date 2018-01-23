@@ -57,6 +57,8 @@ class Rectangle {
 
     // moveTo translates the Rectangle such that the the top left point of the rectangle is the given point.
     void moveTo(final Point2D p) {
+        // This origin stuff is not strictly necessary because before this method is called, origin is always (0, 0)
+        // but whatever, lets do it for completeness and safety.
         final Point2D dif = p.subtract(origin);
         moveBy(dif);
     }
@@ -96,6 +98,8 @@ class Rectangle {
         return points[3];
     }
 
+    // Called once during the constructor. After that, whoever uses this class
+    // is responsible for ensuring the polygon is synced.
     private void syncPolygon() {
         polygon.getPoints().setAll(getDoubles());
     }

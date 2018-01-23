@@ -22,7 +22,7 @@ class Physics {
         return point.add(pivot);
     }
 
-    static boolean checkCollision(final Shape shape1, final Shape shape2) {
+    static boolean isIntersecting(final Shape shape1, final Shape shape2) {
         // This is incredibly inefficient but doing it more efficiently involves a lot of math and for this game
         // it is not worth the effort. Just do not run this on a complete toaster.
         // We do not use javafx's bounds as described at https://docs.oracle.com/javase/8/javafx/api/javafx/geometry/Bounds.html
