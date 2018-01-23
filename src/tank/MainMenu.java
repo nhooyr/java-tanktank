@@ -30,7 +30,7 @@ class MainMenu {
         title.setLayoutX(WIDTH / 2 - titleBounds.getWidth() / 2);
         title.setLayoutY(titleBounds.getHeight() + 10);
 
-        final Button playButton = new Button("play");
+        final Button playButton = new Button("PLAY");
         playButton.setDefaultButton(true);
         playButton.setPrefWidth(60);
         playButton.setOnAction(event -> {
@@ -38,7 +38,7 @@ class MainMenu {
             game.start();
         });
 
-        final Button helpButton = new Button("help");
+        final Button helpButton = new Button("HELP");
         helpButton.setPrefWidth(60);
         helpButton.setOnAction(event -> {
             try {

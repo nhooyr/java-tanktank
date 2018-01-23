@@ -69,7 +69,7 @@ class Bullet {
     // If neither is true, then the bullet collided with a corner and we have to handle that specially. See the comments
     // below.
     void handleMazeCollision(final ArrayList<Rectangle> segments) {
-        // TODO this code is copied in Tank too, we could use a shared method that accepts a Shape.
+        // TODO this code is copied in Tank too, we could use a shared method that accepts a Shape or something.
         for (int i = 0; i < segments.size(); i++) {
             if (!Physics.isIntersecting(circle, segments.get(i).getPolygon())) {
                 // The bullet does not intersect the seg.
