@@ -29,7 +29,7 @@ class BulletManager {
     }
 
     // addBullet creates a bullet at the launchPoint moving in the direction theta. nanos is the current time and used
-    // for removing the bullet when it is too old.
+    // for removing the bullet when it has expired.
     void addBullet(final Point2D launchPoint, final double theta, final long nanos) {
         if (lock || bullets.size() >= MAX_BULLETS) {
             return;

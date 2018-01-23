@@ -30,6 +30,28 @@ class Cell {
         setYummySides();
     }
 
+    private void setYummySides() {
+        // If up is true and this cell is not at the top row then it is yummy.
+        if (up.value && row != 0) {
+            yummySegments.add(up);
+        }
+
+        // If right is true and this cell is not at the right edge then it is yummy.
+        if (right.value && column != Maze.COLUMNS - 1) {
+            yummySegments.add(right);
+        }
+
+        // If down is true and this cell is not at the bottom row then it is yummy.
+        if (down.value && row != Maze.ROWS - 1) {
+            yummySegments.add(down);
+        }
+
+        // If left is true and this cell is not at the left edge then it is yummy.
+        if (left.value && column != 0) {
+            yummySegments.add(left);
+        }
+    }
+
     int getRow() {
         return row;
     }
@@ -58,27 +80,6 @@ class Cell {
         return yummySegments;
     }
 
-    private void setYummySides() {
-        // If up is true and this cell is not at the top row then it is yummy.
-        if (up.value && row != 0) {
-            yummySegments.add(up);
-        }
-
-        // If right is true and this cell is not at the right edge then it is yummy.
-        if (right.value && column != Maze.COLUMNS - 1) {
-            yummySegments.add(right);
-        }
-
-        // If down is true and this cell is not at the bottom row then it is yummy.
-        if (down.value && row != Maze.ROWS - 1) {
-            yummySegments.add(down);
-        }
-
-        // If left is true and this cell is not at the left edge then it is yummy.
-        if (left.value && column != 0) {
-            yummySegments.add(left);
-        }
-    }
 
     // isYummy tells the maze generation algorithm whether this cell can have more segments removed, or "eaten".
     boolean isYummy() {

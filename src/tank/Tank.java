@@ -25,7 +25,7 @@ class Tank {
     private static final double TURNING_ANGLE = Math.PI / 36;
     private static final double BODY_WIDTH = 40;
     private static final double HEAD_WIDTH = BODY_WIDTH / 2;
-    private static final Color DEAD_COLOR = Color.BLACK;
+    private static final Color DEATH_COLOR = Color.BLACK;
 
     static {
         KEY_CODES_1.put(KeyCode.UP, Op.FORWARD);
@@ -91,7 +91,7 @@ class Tank {
         moveBy(new Point2D((Cell.LENGTH - Maze.THICKNESS) / 2, (Cell.LENGTH - Maze.THICKNESS) / 2));
         moveBy(new Point2D(-body.getWidth() / 2, -body.getHeight() / 2));
 
-        syncPolygons();
+        syncShape();
     }
 
     BulletManager getBulletManager() {
@@ -107,7 +107,7 @@ class Tank {
         final Rectangle headCopy = new Rectangle(head);
         final Rectangle bodyCopy = new Rectangle(body);
 
-        // TODO should the tank be pointing out or into the alert ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ need more thought.
+        // TODO should the tank be pointing out or into the alert ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ needs more thought. right now its in. feels more symmetric
         headCopy.rotate(pivot, -theta + Math.PI);
         bodyCopy.rotate(pivot, -theta + Math.PI);
 
@@ -131,10 +131,10 @@ class Tank {
         head.rotate(pivot, theta);
         decomposedVelocity = Physics.decomposeVector(VELOCITY, this.theta);
         negativeDecomposedVelocity = Physics.decomposeVector(-VELOCITY, this.theta);
-        syncPolygons();
+        syncShape();
     }
 
-    private void syncPolygons() {
+    private void syncShape() {
         shape = Shape.union(head.getPolygon(), body.getPolygon());
     }
 
@@ -152,7 +152,7 @@ class Tank {
         head.moveBy(point);
         body.moveBy(point);
         pivot = pivot.add(point);
-        syncPolygons();
+        syncShape();
     }
 
     private Point2D getBulletLaunchPoint() {
@@ -239,6 +239,7 @@ class Tank {
         activeOps.remove(op);
     }
 
+    // handle updates the state of the tank and the tank's bullets.
     void handle(final long nanos) {
         bulletManager.update(nanos);
 
@@ -277,8 +278,8 @@ class Tank {
 
     void kill() {
         dead = true;
-        head.getPolygon().setFill(DEAD_COLOR);
-        body.getPolygon().setFill(DEAD_COLOR);
+        head.getPolygon().setFill(DEATH_COLOR);
+        body.getPolygon().setFill(DEATH_COLOR);
     }
 
     boolean isDead() {

@@ -62,6 +62,7 @@ class MainMenu {
 
         root.getChildren().addAll(title, vbox);
         stage.setScene(scene);
+        // Must be called after the scene is set.
         stage.centerOnScreen();
     }
 }

@@ -59,6 +59,7 @@ class Game {
         scene.addEventHandler(KeyEvent.KEY_RELEASED, this::handleReleased);
 
         stage.setScene(scene);
+        // Must be called after the scene is set.
         stage.centerOnScreen();
     }
 

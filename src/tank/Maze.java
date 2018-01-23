@@ -16,7 +16,7 @@ class Maze {
     // Given the bullet velocity itself is defined to be greater than the tank velocity, this also ensures that the tank does not
     // punch through any walls without the collision being detected.
     static final double THICKNESS = Bullet.VELOCITY * 2;
-    static final int ROWS = 8;
+    static final int ROWS = 7;
     static final int COLUMNS = 10;
     private static final Color COLOR = Color.BLACK;
 

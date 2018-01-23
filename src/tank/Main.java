@@ -4,8 +4,7 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 
 
-// TODO probably bad UX to always center the stage when first showing a scene. oh well
-// TODO write docs/cleanup
+// TODO bad UX to always center the stage when first showing a scene. maybe keep separate coordinates for the game/menu so when recreating, they are in the right place. or just separate stages.
 public class Main extends Application {
 
     public static void main(final String[] args) {

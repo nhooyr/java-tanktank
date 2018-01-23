@@ -146,6 +146,7 @@ class Bullet {
         velocity = reflect(velocity, normal);
     }
 
+    // reflect reflects the velocity across the normal.
     private Point2D reflect(final Point2D velocity, final Point2D normal) {
         return velocity.subtract(normal.multiply(velocity.dotProduct(normal)).multiply(2));
     }
