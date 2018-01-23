@@ -152,7 +152,7 @@ class Maze {
         }
     }
 
-    // Dirty hack because collision detection is expensive. See the Physics class.
+    // Needed because collision detection is expensive. See the Physics class.
     // This could probably be optimized even further based on the overlaps in segments but its more than
     // fast enough as it is and it is difficult enough to understand. It is hard to explain
     // but what we are doing is finding the closest two horizontal and vertical segments and checking for

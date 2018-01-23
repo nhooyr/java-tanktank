@@ -50,9 +50,11 @@ class Tank {
     private final Rectangle body = new Rectangle(BODY_WIDTH, BODY_HEIGHT);
     private final BulletManager bulletManager;
     private final Maze maze;
+    // Map from the keycodes to ops, see the KEY_CODES_1, KEY_CODES_2 and the handle method.
     private final HashMap<KeyCode, Op> keycodes;
     // Keys pressed since the last frame.
     private final HashSet<Op> activeOps = new HashSet<>();
+    // Shape holds the union between the body and head. It is used for collision detection.
     private Shape shape;
     // Middle of body.
     private Point2D pivot = new Point2D(body.getWidth() / 2, body.getHeight() / 2);
@@ -103,6 +105,7 @@ class Tank {
         return new Group(body.getPolygon(), head.getPolygon());
     }
 
+    // The pose used by winners!
     Node getWinPose() {
         final Rectangle headCopy = new Rectangle(head);
         final Rectangle bodyCopy = new Rectangle(body);
@@ -178,6 +181,9 @@ class Tank {
     }
 
     // TODO add edge mechanics, e.g. instead of just stopping the tank, we lower velocity/slide.
+    // The way this works is that we first grab possible collision candidates from the maze.
+    // Then we ensure there is actually a collision. Once we know there is a collision, we
+    // backtrack the tank until there is no collision.
     private void handleMazeCollisions() {
         final ArrayList<Rectangle> segs = maze.getCollisionCandidates(getCenter());
 
