@@ -3,7 +3,6 @@ package tank;
 import javafx.geometry.Point2D;
 import javafx.scene.Group;
 import javafx.scene.Node;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Polygon;
 
 import java.util.ArrayList;
