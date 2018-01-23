@@ -27,7 +27,7 @@ class Game {
     private static final double WIDTH = Cell.LENGTH * Maze.COLUMNS + Maze.THICKNESS;
     private static final double HEIGHT = Cell.LENGTH * Maze.ROWS + Maze.THICKNESS;
 
-    private static final ButtonType RESTART_BUTTON_TYPE = new ButtonType("RESTART", ButtonBar.ButtonData.NEXT_FORWARD);
+    private static final ButtonType PLAY_AGAIN_BUTTON_TYPE = new ButtonType("PLAY AGAIN", ButtonBar.ButtonData.YES);
     // This is unfortunate but javafx sucks. One of the buttons need to be a cancel button otherwise you cant X the dialog...
     // I'd rather not add a third button so this is how its going to work unfortunately. Worse part is that it treats
     // closing the window as clicking the cancel button, which is certainly not necessarily the case. We would prefer the
@@ -115,7 +115,7 @@ class Game {
             alert.setGraphic(graphic);
             alert.setContentText(alertContent);
 
-            alert.getButtonTypes().setAll(MAIN_MENU_BUTTON_TYPE, RESTART_BUTTON_TYPE);
+            alert.getButtonTypes().setAll(MAIN_MENU_BUTTON_TYPE, PLAY_AGAIN_BUTTON_TYPE);
 
             // Must run later because we cannot call alert.showAndWait() during animation processing. See its docs.
             // And we might want animation to continue down the road anyhow.
