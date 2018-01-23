@@ -98,8 +98,7 @@ class Rectangle {
         return points[3];
     }
 
-    // Called once during the constructor. After that, whoever uses this class
-    // is responsible for ensuring the polygon is synced.
+    // Syncs the current points array with the polygon.
     private void syncPolygon() {
         polygon.getPoints().setAll(getDoubles());
     }
