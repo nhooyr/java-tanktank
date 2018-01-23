@@ -24,7 +24,7 @@ class MainMenu {
         final Group root = new Group();
         final Scene scene = new Scene(root, WIDTH, HEIGHT);
 
-        final Text title = new Text("Tank Trouble");
+        final Text title = new Text("Tank Tank");
         title.setFont(Font.font(30));
         final Bounds titleBounds = title.getLayoutBounds();
         title.setLayoutX(WIDTH / 2 - titleBounds.getWidth() / 2);
