@@ -13,7 +13,6 @@ import java.util.HashSet;
 import java.util.Random;
 
 // Tank represents the tanks in the game.
-//
 class Tank {
     static final int VELOCITY = 3; // exported for use in Bullet.
     static final double BODY_HEIGHT = 30; // exported for use in Cell.
@@ -110,7 +109,7 @@ class Tank {
         final Rectangle headCopy = new Rectangle(head);
         final Rectangle bodyCopy = new Rectangle(body);
 
-        // TODO should the tank be pointing out or into the alert ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ needs more thought. right now its in. feels more symmetric
+        // TODO should the tank be pointing out or into the alert ¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿ needs more thought. right now it faces inward. feels more symmetric
         headCopy.rotate(pivot, -theta + Math.PI);
         bodyCopy.rotate(pivot, -theta + Math.PI);
 
@@ -203,6 +202,8 @@ class Tank {
         Runnable reverseOp = null;
         // Backtrack.
         final Tank tank = this;
+        // Need to declare this up here instead of in each case because java's switch cases share scope. So java would think
+        // we are redeclaring a variable.
         final Point2D decomposedVelocity;
         switch (lastMovementOp) {
             case FORWARD:

@@ -18,7 +18,6 @@ class Maze {
     static final double THICKNESS = Bullet.VELOCITY * 2;
     static final int ROWS = 7;
     static final int COLUMNS = 10;
-    private static final Color COLOR = Color.BLACK;
 
     private final Group group = new Group();
     private final Rectangle[][] horizontalSegments = new Rectangle[COLUMNS][ROWS + 1];
@@ -147,7 +146,6 @@ class Maze {
     private void addSeg(final Rectangle seg) {
         if (seg != null) {
             final Polygon poly = seg.getPolygon();
-            poly.setFill(Maze.COLOR);
             group.getChildren().add(poly);
         }
     }

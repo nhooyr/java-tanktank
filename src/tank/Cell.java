@@ -1,10 +1,13 @@
 package tank;
 
+import javafx.scene.paint.Color;
+
 import java.util.ArrayList;
 
 // Cell represents a cell within the Maze.
 class Cell {
     static final double LENGTH = 3.5 * Tank.BODY_HEIGHT;
+    private static final Color COLOR = Color.BLACK;
 
     private final int row;
     private final int column;
@@ -118,6 +121,7 @@ class Cell {
         Rectangle rect = null;
         if (visibility.value) {
             rect = new Rectangle(x, y, width, height);
+            rect.getPolygon().setFill(COLOR);
         }
         return rect;
     }
