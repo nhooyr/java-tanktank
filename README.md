@@ -2,6 +2,8 @@
 
 A tank battle game implemented in java using javafx.
 
+![A screenshot of the game.](https://i.imgur.com/oRLizLu.png)
+
 ## Help
 
 ### Gameplay
